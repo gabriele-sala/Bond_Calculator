@@ -56,26 +56,40 @@
 
   <main class="layout">
     <form id="bond-form" class="panel inputs" novalidate>
-      <div class="isin-box">
+      <div class="isin-box" id="isin-box">
+        <div class="market" role="radiogroup" aria-labelledby="market-label">
+          <span class="market-label" id="market-label">Mercato</span>
+          <div class="market-list" id="market-list"></div>
+        </div>
         <label for="isin">Cerca un titolo di Stato per ISIN</label>
+        <ol class="steps" id="isin-steps" aria-label="Come funziona la ricerca per ISIN">
+          <li data-step="1"><span class="step-n">1</span> Inserisci l'ISIN</li>
+          <li data-step="2"><span class="step-n">2</span> Carica</li>
+          <li data-step="3"><span class="step-n">3</span> Verifica il prezzo</li>
+          <li data-step="4"><span class="step-n">4</span> Inserisci il prezzo di acquisto</li>
+        </ol>
         <div class="isin-row">
-          <input id="isin" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="IT0005…" maxlength="16">
+          <input id="isin" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="IT0005…" maxlength="16" aria-describedby="isin-status">
           <button type="button" id="isin-load">Carica</button>
         </div>
         <p id="isin-status" class="isin-status" role="status"></p>
-        <a id="isin-price" class="isin-link" href="https://www.borsaitaliana.it/" target="_blank" rel="noopener" hidden>Vedi prezzo su Borsa Italiana <span aria-hidden="true">↗</span></a>
+        <a id="isin-price" class="isin-link" href="https://www.borsaitaliana.it/" target="_blank" rel="noopener" hidden>Vedi il prezzo su Borsa Italiana <span aria-hidden="true">↗</span></a>
         <p id="isin-source" class="isin-source" hidden></p>
       </div>
 
       <div class="field">
         <label for="preset">Oppure carica un esempio</label>
-        <select id="preset">
-          <option value="">Scegli un esempio…</option>
-          <option value="btp">BTP decennale, cedola semestrale</option>
-          <option value="corp">Corporate USD, 30/360 semestrale</option>
-          <option value="zero">Zero coupon a 2 anni</option>
-          <option value="call">Obbligazione callable</option>
-        </select>
+        <div class="preset-row">
+          <select id="preset">
+            <option value="">Scegli un esempio…</option>
+            <option value="btp">BTP decennale, cedola semestrale</option>
+            <option value="corp">Corporate USD, 30/360 semestrale</option>
+            <option value="zero">Zero coupon a 2 anni</option>
+            <option value="call">Obbligazione callable</option>
+          </select>
+          <button type="button" class="btn btn-quiet" id="reset-calc">Ripristina calcolatore</button>
+        </div>
+        <p id="reset-status" class="isin-status" role="status"></p>
       </div>
 
       <fieldset>
@@ -128,8 +142,10 @@
           <label for="mode-yield">Il rendimento</label>
         </div>
         <div class="field" id="price-field">
-          <label for="price">Prezzo secco (corso)</label>
-          <input id="price" type="text" inputmode="decimal" autocomplete="off">
+          <label for="price">Prezzo di acquisto / simulazione</label>
+          <input id="price" type="text" inputmode="decimal" autocomplete="off" placeholder="100" aria-describedby="price-help price-default">
+          <p class="field-help" id="price-help">Prezzo secco per 100 di nominale. Puoi inserire il prezzo di mercato attuale oppure qualsiasi prezzo ipotetico per simulare un acquisto.</p>
+          <p class="field-help field-note" id="price-default" hidden>Prezzo non inserito: il calcolo usa 100, cioè la pari.</p>
         </div>
         <div class="grid2" id="yield-field" hidden>
           <div class="field">
@@ -189,20 +205,25 @@
       </details>
     </form>
 
-    <section class="results" aria-live="polite">
+    <section class="results">
       <div id="error" class="error" role="alert" hidden></div>
 
       <div id="output">
+        <div class="share-row">
+          <button type="button" class="btn btn-quiet" id="share-btn">Condividi analisi</button>
+          <span class="isin-status" id="share-status" role="status"></span>
+          <input type="text" id="share-url" class="share-url" readonly aria-label="Link dell'analisi" hidden>
+        </div>
         <div class="headline">
           <div class="figure primary">
-            <span class="label">Rendimento lordo</span>
-            <span class="value" id="r-eff">–</span>
-            <span class="sub" id="r-ytm">–</span>
-          </div>
-          <div class="figure">
             <span class="label">Rendimento netto stimato</span>
             <span class="value" id="r-net">–</span>
             <span class="sub" id="r-net-sub">–</span>
+          </div>
+          <div class="figure">
+            <span class="label">Rendimento lordo</span>
+            <span class="value" id="r-eff">–</span>
+            <span class="sub" id="r-ytm">–</span>
           </div>
           <div class="figure">
             <span class="label">Prezzo tel quel</span>
@@ -213,6 +234,11 @@
             <span class="label">Duration modificata</span>
             <span class="value" id="r-mod">–</span>
             <span class="sub" id="r-mod-sub">–</span>
+          </div>
+          <div class="figure">
+            <span class="label">DV01 per 100 di nominale</span>
+            <span class="value" id="r-dv01">–</span>
+            <span class="sub" id="r-dv01-sub">–</span>
           </div>
         </div>
 
@@ -230,7 +256,7 @@
             <h2>Se i rendimenti cambiano</h2>
           </div>
           <div class="impacts" id="impacts"></div>
-          <p class="hint">Variazione immediata del prezzo tel quel se il rendimento effettivo annuo del titolo sale o scende dei punti base (pb) indicati. Nel grafico, la distanza fra le due linee è la convessità: a grandi variazioni di rendimento la duration da sola sbaglia il prezzo.</p>
+          <p class="hint">Variazione immediata del prezzo tel quel sul nominale inserito, ricalcolando il prezzo esatto al nuovo rendimento effettivo annuo (1 pb = 0,01%). Nel grafico, la distanza fra le due linee è la convessità: a grandi variazioni di rendimento la duration da sola sbaglia il prezzo.</p>
           <ul class="legend">
             <li><span class="key key-curve"></span>Prezzo secco effettivo</li>
             <li><span class="key key-dur"></span>Stima con la duration</li>
@@ -290,8 +316,8 @@
 
   <div class="dock" id="dock" hidden>
     <dl>
-      <div><dt>Lordo</dt><dd id="dock-gross">–</dd></div>
       <div><dt>Netto</dt><dd id="dock-net">–</dd></div>
+      <div><dt>Lordo</dt><dd id="dock-gross">–</dd></div>
       <div><dt id="dock-third-label">Prezzo</dt><dd id="dock-third">–</dd></div>
     </dl>
     <a href="#output" class="dock-link">Risultati</a>
@@ -306,7 +332,7 @@
       <div class="pf-actions">
         <button type="button" class="btn" id="pf-add">Aggiungi il titolo del calcolatore</button>
         <button type="button" class="btn btn-quiet" id="pf-example">Carica un esempio</button>
-        <button type="button" class="btn btn-quiet" id="pf-clear" hidden>Svuota</button>
+        <button type="button" class="btn btn-quiet" id="pf-clear" hidden>Svuota portafoglio</button>
       </div>
     </div>
     <p class="isin-status" id="pf-status" role="status"></p>
@@ -317,7 +343,8 @@
 
     <div class="pf-body" id="pf-body" hidden>
       <p class="pf-none" id="pf-none" hidden>Nessun titolo analizzabile alla data di regolamento scelta. Controlla la data nel calcolatore o rimuovi i titoli scaduti.</p>
-      <div class="pf-kpis" id="pf-kpis"></div>
+      <h3 class="pf-summary-title" id="pf-summary-title">Portafoglio</h3>
+      <div class="pf-kpis" id="pf-kpis" aria-labelledby="pf-summary-title"></div>
 
       <p class="hint" id="pf-table-hint">Nominale e prezzo si possono modificare direttamente nella tabella.</p>
       <div class="scroll">
@@ -392,8 +419,10 @@
 
 <script src="js/theme.js"></script>
 <script src="js/config.js"></script>
+<script src="js/share.js"></script>
 <script src="js/bond.js"></script>
 <script src="js/isin.js"></script>
+<script src="js/markets.js"></script>
 <script src="js/portfolio.js"></script>
 <script src="js/app.js"></script>
 </body>
