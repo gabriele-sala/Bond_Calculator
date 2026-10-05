@@ -87,6 +87,9 @@
   // Aperto un link condiviso, l'analisi salvata dall'utente resta com'è finché
   // non modifica qualcosa: il link da solo non la sovrascrive.
   let holdSave = false;
+  // Il link resta nell'indirizzo finché l'analisi modificata non è salvata:
+  // se la prima modifica non si salva (campo in errore), una ricarica lo riapre.
+  let cleanPending = false;
 
   function save() {
     if (holdSave) return;
@@ -97,6 +100,7 @@
       state.stamp = $('stamp').checked;
       state.isinLoaded = isinLoaded;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (cleanPending) cleanUrl();
     } catch (e) { /* archiviazione non disponibile */ }
   }
 
@@ -772,6 +776,7 @@
       $('isin-load').disabled = false;
       $('isin-load').textContent = 'Carica';
       $('isin-box').removeAttribute('aria-busy');
+      syncSteps();
       // Disattivato durante il caricamento, il pulsante perde il fuoco: lo riprende.
       if (!document.activeElement || document.activeElement === document.body) $('isin-load').focus();
     }
@@ -1177,6 +1182,7 @@
 
   // Toglie i dati del link dall'indirizzo: ricaricando si ritrova l'analisi salvata.
   function cleanUrl() {
+    cleanPending = false;
     try {
       if (location.search) history.replaceState(null, '', location.pathname + location.hash);
     } catch (e) { /* cronologia non modificabile */ }
@@ -1185,7 +1191,7 @@
   // Alla prima modifica l'analisi del link diventa quella dell'utente: si salva
   // e l'indirizzo torna pulito.
   function userEdited() {
-    if (holdSave) cleanUrl();
+    if (holdSave) cleanPending = true;
     holdSave = false;
     clearNotices();
   }
@@ -1255,7 +1261,6 @@
     }
     const url = location.href.split('#')[0].split('?')[0] + '?' + Share.encode(shareState());
     $('share-url').hidden = true;
-    $('back-to-own').hidden = true;
     if (navigator.share) {
       try {
         await navigator.share({ title: 'Analisi obbligazione', url });
@@ -1293,6 +1298,7 @@
   // Dopo un link condiviso: torna all'analisi che l'utente aveva salvato.
   function backToOwn() {
     userEdited();
+    cleanUrl();
     if (!restore()) applyDefaults();
     const s = B.parseDate($('settlement').value);
     if (!s || s < todayUTC()) $('settlement').value = B.toISO(defaultSettlement());
@@ -1311,6 +1317,7 @@
       localStorage.removeItem(STORAGE_KEY);
     } catch (e) { /* archiviazione non disponibile */ }
     userEdited();
+    cleanUrl();
     applyDefaults();
     isinLoaded = false;
     document.querySelectorAll('#bond-form [aria-invalid="true"]').forEach((el) => el.setAttribute('aria-invalid', 'false'));
@@ -1329,11 +1336,16 @@
     // Un link condiviso ricostruisce l'analisi così com'era, data compresa.
     const link = Share.parse(location.search);
     const shared = link.data;
+    // Share controlla solo il formato dell'ISIN; qui anche la cifra di controllo.
+    if (shared && shared.isin && !Isin.isValid(shared.isin)) {
+      delete shared.isin;
+      link.problems.unshift('ISIN');
+    }
     const ownSaved = hasSaved();
     if (shared) {
       applyDefaults();
       applyShared(shared);
-      isinLoaded = !!shared.isin;
+      isinLoaded = Isin.isValid(Isin.normalize($('isin').value));
       holdSave = true;
     } else {
       if (!restore()) applyDefaults();
@@ -1418,8 +1430,9 @@
       }
       compute();
     });
+    // In cattura: parte prima degli ascoltatori dei singoli campi (l'ISIN salva da sé).
+    $('bond-form').addEventListener('input', userEdited, true);
     $('bond-form').addEventListener('input', (e) => {
-      userEdited();
       if (e.target.id === 'isin' || e.target.id === 'preset' || e.target.id === 'yieldbasis' || e.target.name === 'mode') return;
       compute();
     });
