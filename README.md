@@ -12,6 +12,24 @@ Sito statico (HTML, CSS e JavaScript, nessuna dipendenza) per calcolare con prec
 - **Duration** di Macaulay e modificata, **convessità**, **DV01**
 - Curva prezzo-rendimento, scenari di variazione dei tassi e tabella completa dei flussi di cassa
 
+## Ricerca per ISIN
+
+In cima al modulo si può cercare un titolo di Stato italiano per ISIN: cedola, frequenza, scadenza e tassazione si compilano da soli e restano modificabili. Il link "Vedi prezzo su Borsa Italiana" apre la scheda del titolo, da cui copiare il prezzo.
+
+- Codice ISIN verificato con la cifra di controllo (ISO 6166).
+- Gestiti: BTP, BTP Green, BTP Short Term, BOT e CTZ. CCTeu, BTP Italia, BTP€i, BTP Valore, BTP Più e BTP Futura vengono riconosciuti ma non calcolati (cedola variabile, indicizzata o crescente).
+- L'elenco è letto da `data/titoli-stato.json`.
+
+### Collegare un servizio prezzi
+
+Il sito è pronto per ricevere i prezzi in automatico. Basta impostare `priceEndpoint` in `js/config.js` con l'indirizzo di un servizio che risponda a `GET {priceEndpoint}?isin=IT…` con:
+
+```json
+{ "isin": "IT0005…", "price": 101.35, "time": "2026-10-05T14:32:00Z", "source": "Nome fonte" }
+```
+
+dove `price` è il prezzo secco per 100 di nominale, oppure con stato 404 se il titolo non è disponibile. Se il servizio non risponde, il sito chiede il prezzo a mano.
+
 ## Privacy
 
 Il sito non contatta nessun server esterno: niente analytics, niente cookie, nessuna libreria da CDN. Anche i font (IBM Plex e Instrument Serif, licenza SIL Open Font License, testi in `fonts/`) sono ospitati nel repository, così l'indirizzo IP dei visitatori non viene inviato a Google Fonts. Tutti i calcoli avvengono nel browser.

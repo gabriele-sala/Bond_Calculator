@@ -79,7 +79,7 @@
 
   // ------------------------------------------------------ stato modulo
 
-  const FIELDS = ['settlement', 'maturity', 'coupon', 'freq', 'daycount', 'redemption', 'price', 'yield', 'yieldbasis', 'nominal', 'commission', 'tax', 'taxcustom', 'calldate', 'callprice'];
+  const FIELDS = ['isin', 'settlement', 'maturity', 'coupon', 'freq', 'daycount', 'redemption', 'price', 'yield', 'yieldbasis', 'nominal', 'commission', 'tax', 'taxcustom', 'calldate', 'callprice'];
 
   function save() {
     try {
@@ -148,7 +148,9 @@
     };
 
     if (m === 'price') {
-      input.cleanPrice = need('price', 'Il prezzo secco deve essere maggiore di zero, ad esempio 98,50.', { gt: 0 });
+      input.cleanPrice = need('price', $('price').value.trim()
+        ? 'Il prezzo secco deve essere maggiore di zero, ad esempio 98,50.'
+        : 'Inserisci il prezzo secco del titolo. Per i titoli quotati lo trovi su Borsa Italiana.', { gt: 0 });
     } else {
       const yv = need('yield', 'Il rendimento deve essere un numero, ad esempio 3,5.');
       const y = yv / 100;
@@ -508,6 +510,106 @@
     hit.addEventListener('pointerleave', leave);
   }
 
+  // ------------------------------------------------------- ricerca ISIN
+
+  const Isin = window.Isin;
+  const CONFIG = window.BOND_CONFIG || {};
+  const timeIt = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Rome' });
+  let catalogPromise = null;
+
+  function loadCatalog() {
+    if (!catalogPromise) {
+      catalogPromise = fetch(CONFIG.catalogUrl || 'data/titoli-stato.json', { cache: 'no-cache' })
+        .then((res) => {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then((data) => ({ map: Isin.indexCatalog(data), updated: data.aggiornato || null }))
+        .catch((e) => {
+          catalogPromise = null;
+          throw e;
+        });
+    }
+    return catalogPromise;
+  }
+
+  function setIsinStatus(text, kind) {
+    $('isin-status').textContent = text;
+    $('isin-status').className = 'isin-status' + (kind ? ' ' + kind : '');
+  }
+
+  function updatePriceLink(tipo) {
+    const code = Isin.normalize($('isin').value);
+    const valid = Isin.isValid(code);
+    $('isin-price').hidden = !valid;
+    if (valid) $('isin-price').href = Isin.borsaItalianaUrl(code, tipo);
+  }
+
+  async function loadIsin() {
+    const code = Isin.normalize($('isin').value);
+    $('isin').value = code;
+    if (!Isin.isValid(code)) {
+      $('isin').setAttribute('aria-invalid', 'true');
+      setIsinStatus(code ? 'Codice ISIN non valido: controlla le 12 lettere e cifre.' : 'Inserisci un codice ISIN, ad esempio IT0005….', 'warn');
+      updatePriceLink();
+      return;
+    }
+    $('isin').setAttribute('aria-invalid', 'false');
+    $('isin-load').disabled = true;
+    setIsinStatus('Ricerca in corso…');
+    try {
+      let catalog;
+      try {
+        catalog = await loadCatalog();
+      } catch (e) {
+        updatePriceLink();
+        setIsinStatus('Elenco dei titoli non disponibile in questo momento. Inserisci cedola e scadenza a mano.', 'warn');
+        return;
+      }
+      const t = catalog.map.get(code);
+      updatePriceLink(t && t.tipo);
+      if (!t) {
+        setIsinStatus(code.startsWith('IT')
+          ? 'Titolo non trovato fra i titoli di Stato in circolazione. Per altre obbligazioni inserisci i dati a mano.'
+          : 'La ricerca copre i titoli di Stato italiani. Per questa obbligazione inserisci i dati a mano.', 'info');
+        return;
+      }
+      const r = Isin.toFormValues(t, $('settlement').value);
+      if (r.unsupported) {
+        setIsinStatus(t.descrizione + '. ' + r.unsupported, 'info');
+        return;
+      }
+      const v = r.values;
+      $('maturity').value = v.maturity;
+      $('coupon').value = show(v.coupon, 4);
+      $('freq').value = String(v.freq);
+      $('daycount').value = v.dayCount;
+      $('redemption').value = show(v.redemption, 4);
+      $('tax').value = '0.125';
+      $('calldate').value = '';
+      $('callprice').value = '';
+      $('call-details').open = false;
+      $('mode-price').checked = true;
+      $('price').value = '';
+
+      let priceNote = 'Ora inserisci il prezzo secco: lo trovi su Borsa Italiana.';
+      try {
+        const p = await Isin.fetchPrice(code, CONFIG.priceEndpoint);
+        if (p) {
+          $('price').value = show(p.price, 4);
+          priceNote = 'Prezzo ' + num(p.price, 2) + (p.time ? ' delle ' + timeIt.format(p.time) : '') + (p.source ? ', fonte ' + p.source : '') + '.';
+        }
+      } catch (e) {
+        priceNote = e.message + ' Inserisci il prezzo a mano.';
+      }
+      setIsinStatus(t.descrizione + ': dati caricati. ' + priceNote, 'ok');
+      compute();
+      if (!$('price').value) $('price').focus();
+    } finally {
+      $('isin-load').disabled = false;
+    }
+  }
+
   // ------------------------------------------------------------- avvio
 
   function init() {
@@ -520,7 +622,25 @@
     const s = B.parseDate($('settlement').value);
     if (!s || s < todayUTC()) $('settlement').value = B.toISO(defaultSettlement());
 
+    $('isin-load').addEventListener('click', loadIsin);
+    $('isin').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        loadIsin();
+      }
+    });
+    $('isin').addEventListener('input', () => {
+      $('isin').setAttribute('aria-invalid', 'false');
+      setIsinStatus('');
+      updatePriceLink();
+      save();
+    });
+    updatePriceLink();
+
     $('preset').addEventListener('change', (e) => {
+      $('isin').value = '';
+      setIsinStatus('');
+      updatePriceLink();
       applyPreset(e.target.value);
       e.target.value = '';
       compute();
@@ -547,7 +667,7 @@
       compute();
     });
     $('bond-form').addEventListener('input', (e) => {
-      if (e.target.id === 'preset' || e.target.id === 'yieldbasis' || e.target.name === 'mode') return;
+      if (e.target.id === 'isin' || e.target.id === 'preset' || e.target.id === 'yieldbasis' || e.target.name === 'mode') return;
       compute();
     });
     $('bond-form').addEventListener('submit', (e) => e.preventDefault());

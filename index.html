@@ -23,8 +23,18 @@
 
   <main class="layout">
     <form id="bond-form" class="panel inputs" novalidate>
+      <div class="isin-box">
+        <label for="isin">Cerca un titolo di Stato per ISIN</label>
+        <div class="isin-row">
+          <input id="isin" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="IT0005…" maxlength="16">
+          <button type="button" id="isin-load">Carica</button>
+        </div>
+        <p id="isin-status" class="isin-status" role="status"></p>
+        <a id="isin-price" class="isin-link" href="https://www.borsaitaliana.it/" target="_blank" rel="noopener" hidden>Vedi prezzo su Borsa Italiana <span aria-hidden="true">↗</span></a>
+      </div>
+
       <div class="field">
-        <label for="preset">Carica un esempio</label>
+        <label for="preset">Oppure carica un esempio</label>
         <select id="preset">
           <option value="">Scegli un esempio…</option>
           <option value="btp">BTP decennale, cedola semestrale</option>
@@ -258,7 +268,9 @@
   </section>
 </div>
 
+<script src="js/config.js"></script>
 <script src="js/bond.js"></script>
+<script src="js/isin.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
