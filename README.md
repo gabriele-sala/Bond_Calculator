@@ -12,6 +12,10 @@ Sito statico (HTML, CSS e JavaScript, nessuna dipendenza) per calcolare con prec
 - **Duration** di Macaulay e modificata, **convessità**, **DV01**
 - Curva prezzo-rendimento, scenari di variazione dei tassi e tabella completa dei flussi di cassa
 
+## Privacy
+
+Il sito non contatta nessun server esterno: niente analytics, niente cookie, nessuna libreria da CDN. Anche i font (IBM Plex e Instrument Serif, licenza SIL Open Font License, testi in `fonts/`) sono ospitati nel repository, così l'indirizzo IP dei visitatori non viene inviato a Google Fonts. Tutti i calcoli avvengono nel browser.
+
 ## Precisione
 
 Il motore di calcolo (`js/bond.js`) segue la convenzione ICMA, con gli stessi esponenti `DSC/E + k − 1` delle funzioni Excel. I test confrontano i risultati con gli esempi ufficiali Microsoft di `PRICE`, `YIELD`, `DURATION` e `MDURATION`, oltre a verificare rateo, calendario cedolare con regola di fine mese, inversione prezzo/rendimento, convessità e tassazione.

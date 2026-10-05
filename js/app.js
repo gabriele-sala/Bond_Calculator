@@ -222,49 +222,151 @@
     const inv = r.investor;
 
     $('r-eff').textContent = pct(r.ytmEffective);
-    $('r-ytm').textContent = 'YTM ' + pct(r.ytm) + ' nominale ' + FREQ_LABEL[f];
+    $('r-ytm').textContent = 'effettivo annuo · YTM ' + pct(r.ytm) + ' ' + FREQ_LABEL[f];
     $('r-net').textContent = pct(inv.effective);
-    $('r-net-sub').textContent = taxLabel(input);
+    $('r-net-sub').textContent = 'effettivo annuo, ' + taxLabel(input);
     $('r-dirty').textContent = num(r.dirty, 4);
     $('r-dirty-sub').textContent = 'secco ' + num(r.clean, 4) + ' + rateo ' + num(r.accrued, 4);
     $('r-mod').textContent = num(r.risk.modified, 2);
     $('r-mod-sub').textContent = 'Macaulay ' + num(r.risk.macaulay, 2) + ' anni';
 
     const Q = input.nominal / 100;
-    const facts = [
-      ['Prezzo secco', num(r.clean, 4)],
-      ['Rateo (' + upTo2.format(b.A) + '/' + upTo2.format(b.E) + ' gg)', num(r.accrued, 6)],
-      ['Prezzo tel quel', num(r.dirty, 4)],
+    const yieldFacts = [
       ['Rendimento corrente', pct(r.currentYield)],
       ['YTM nominale (' + FREQ_LABEL[f] + ')', pct(r.ytm, 4)],
       ['Rendimento effettivo lordo', pct(r.ytmEffective, 4)],
       ['Rendimento effettivo netto', pct(inv.effective, 4)],
     ];
-    if (r.callError) facts.push(['Yield to call', r.callError]);
+    if (r.callError) yieldFacts.push(['Yield to call', r.callError]);
     else if (Number.isFinite(r.ytc)) {
-      facts.push(['Yield to call (effettivo)', pct(r.ytcEffective, 4)]);
-      facts.push(['Yield to worst (effettivo)', pct(B.nominalToEffective(r.ytw, f), 4)]);
+      yieldFacts.push(['Yield to call (effettivo)', pct(r.ytcEffective, 4)]);
+      yieldFacts.push(['Yield to worst (effettivo)', pct(B.nominalToEffective(r.ytw, f), 4)]);
     }
-    facts.push(
-      ['Duration di Macaulay', num(r.risk.macaulay, 4) + ' anni'],
-      ['Duration modificata', num(r.risk.modified, 4)],
-      ['Convessità', num(r.risk.convexity, 2)],
-      ['DV01 per 100', num(r.risk.dv01, 4)],
-      ['DV01 sul nominale', eur(r.risk.dv01 * Q)],
-      ['Vita residua', num(b.yearsToMaturity, 2) + ' anni'],
-      ['Cedola precedente', fdate(b.prevCoupon)],
-      ['Prossima cedola', fdate(b.nextCoupon)],
-      ['Cedole residue', String(b.cashflows.length)],
-      ['Controvalore tel quel', eur(Q * r.dirty)],
-      ['Esborso con commissioni', eur(inv.cost)],
-      ['Incassi netti totali', eur(inv.received)],
-      ['Guadagno netto', eur(inv.received - inv.cost)],
-    );
-    $('facts').innerHTML = facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+    const groups = [
+      ['Prezzo', [
+        ['Prezzo secco', num(r.clean, 4)],
+        ['Rateo (' + upTo2.format(b.A) + '/' + upTo2.format(b.E) + ' gg)', num(r.accrued, 6)],
+        ['Prezzo tel quel', num(r.dirty, 4)],
+        ['Cedola precedente', fdate(b.prevCoupon)],
+        ['Prossima cedola', fdate(b.nextCoupon)],
+        ['Cedole residue', String(b.cashflows.length)],
+      ]],
+      ['Rendimento', yieldFacts],
+      ['Rischio', [
+        ['Vita residua', num(b.yearsToMaturity, 2) + ' anni'],
+        ['Duration di Macaulay', num(r.risk.macaulay, 4) + ' anni'],
+        ['Duration modificata', num(r.risk.modified, 4)],
+        ['Convessità', num(r.risk.convexity, 2)],
+        ['DV01 per 100', num(r.risk.dv01, 4)],
+        ['DV01 sul nominale', eur(r.risk.dv01 * Q)],
+      ]],
+      ['Il tuo investimento', [
+        ['Controvalore tel quel', eur(Q * r.dirty)],
+        ['Esborso con commissioni', eur(inv.cost)],
+        ['Incassi netti totali', eur(inv.received)],
+        ['Guadagno netto', eur(inv.received - inv.cost)],
+      ]],
+    ];
+    $('facts').innerHTML = groups
+      .map(([title, rows]) => `<section class="fact-group"><h3>${title}</h3><dl class="facts">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl></section>`)
+      .join('');
 
+    renderWaterfall(input, r);
+    updateDock(r);
+    drawRosette(b, input);
     renderScenarios(r);
     renderCashflows(input, r);
     drawChart();
+  }
+
+  // Scompone la differenza fra rendimento lordo e netto, un costo alla volta.
+  function renderWaterfall(input, r) {
+    const b = r.bond;
+    const base = { nominal: input.nominal, cleanPrice: r.clean };
+    const gross = r.ytmEffective;
+    const afterTax = B.investorYield(b, { ...base, taxRate: input.taxRate }).effective;
+    const afterComm = B.investorYield(b, { ...base, taxRate: input.taxRate, commission: input.commission }).effective;
+    const net = r.investor.effective;
+    const rows = [
+      { kind: 'total', label: 'Rendimento lordo', from: 0, to: gross, text: pct(gross) },
+      { kind: 'cut', label: 'Imposte', note: input.taxRate > 0 ? 'aliquota ' + upTo2.format(input.taxRate * 100) + '%' : 'nessuna', on: input.taxRate > 0, from: afterTax, to: gross },
+      { kind: 'cut', label: 'Commissioni', note: input.commission > 0 ? eur(input.commission) : 'nessuna', on: input.commission > 0, from: afterComm, to: afterTax },
+      { kind: 'cut', label: 'Imposta di bollo', note: input.stampDuty ? '0,20% annuo' : 'non inclusa', on: input.stampDuty, from: net, to: afterComm },
+      { kind: 'total', label: 'Rendimento netto', from: 0, to: net, text: pct(net) },
+    ];
+    const lo = Math.min(0, gross, net, afterTax, afterComm);
+    const hi = Math.max(0, gross, net, afterTax, afterComm) || 1;
+    const x = (v) => ((v - lo) / (hi - lo)) * 100;
+    $('waterfall').innerHTML = rows
+      .map((w) => {
+        const a = Math.min(w.from, w.to), z = Math.max(w.from, w.to);
+        const off = w.kind === 'cut' && !w.on;
+        const text = w.text || (off ? '–' : '−' + fmt[3].format((w.to - w.from) * 100) + '%');
+        const bar = z - a > 0 ? `<div class="wf-bar" style="left:${x(a).toFixed(2)}%;width:${Math.max(0.4, x(z) - x(a)).toFixed(2)}%"></div>` : '';
+        return `<div class="wf-row ${w.kind}${off ? ' off' : ''}"><div class="wf-label">${w.label}${w.note ? `<small>${w.note}</small>` : ''}</div><div class="wf-track">${bar}</div><div class="wf-value">${text}</div></div>`;
+      })
+      .join('');
+  }
+
+  // Riepilogo fisso in basso su telefono, nascosto quando i risultati sono visibili.
+  let headlineVisible = true;
+  function updateDock(r) {
+    if (r) {
+      $('dock-gross').textContent = pct(r.ytmEffective, 2);
+      $('dock-net').textContent = pct(r.investor.effective, 2);
+      $('dock-third').textContent = num(r.clean, 2);
+    }
+    $('dock').hidden = headlineVisible || !last;
+  }
+
+  // Rosetta guilloché, come sui certificati obbligazionari: i lobi sono le
+  // cedole residue, l'ampiezza dell'onda cresce con la cedola.
+  let rosetteKey = '';
+  function drawRosette(b, input) {
+    const canvas = $('rosette');
+    if (!canvas || !canvas.clientWidth) return;
+    const lobes = Math.max(6, Math.min(48, b.cashflows.length));
+    const wave = 0.035 + Math.min(0.08, input.couponRate * 0.9);
+    const ink = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    const size = canvas.clientWidth;
+    const key = [lobes, wave.toFixed(4), ink, size].join('|');
+    if (key === rosetteKey) return;
+    rosetteKey = key;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(size * dpr);
+    canvas.height = Math.round(size * dpr);
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, size, size);
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 0.6;
+    const c = size / 2;
+    const bands = [
+      { R: 0.86, a: wave, n: lobes, copies: 16, alpha: 0.7 },
+      { R: 0.6, a: wave * 1.3, n: Math.max(5, Math.round(lobes * 0.75)), copies: 12, alpha: 0.55 },
+      { R: 0.32, a: wave * 1.1, n: Math.max(4, Math.round(lobes / 2)), copies: 10, alpha: 0.45 },
+    ];
+    const steps = 720;
+    for (const band of bands) {
+      ctx.globalAlpha = band.alpha;
+      for (let j = 0; j < band.copies; j++) {
+        const phase = (j / band.copies) * Math.PI * 2;
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const t = (i / steps) * Math.PI * 2;
+          const rr = (band.R + band.a * Math.sin(band.n * t + phase) + band.a * 0.35 * Math.sin(3 * band.n * t - phase)) * c * 0.94;
+          const px = c + rr * Math.cos(t), py = c + rr * Math.sin(t);
+          if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+        }
+        ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function redrawRosette() {
+    rosetteKey = '';
+    if (last) drawRosette(last.result.bond, last.input);
   }
 
   function renderScenarios(r) {
@@ -450,11 +552,23 @@
     });
     $('bond-form').addEventListener('submit', (e) => e.preventDefault());
 
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((entries) => {
+        headlineVisible = entries[0].isIntersecting;
+        updateDock();
+      }).observe(document.querySelector('.headline'));
+    }
+    // Ridisegna la rosetta quando cambia il tema chiaro/scuro.
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redrawRosette);
+    } catch (e) { /* browser datati */ }
+    new MutationObserver(redrawRosette).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
     if ('ResizeObserver' in window) {
       let w = 0;
       new ResizeObserver((entries) => {
         const nw = Math.round(entries[0].contentRect.width);
-        if (nw !== w) { w = nw; drawChart(); }
+        if (nw !== w) { w = nw; drawChart(); if (last) drawRosette(last.result.bond, last.input); }
       }).observe($('chart'));
     } else {
       window.addEventListener('resize', drawChart);

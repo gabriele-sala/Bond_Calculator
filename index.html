@@ -5,17 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calcolatore Rendimento Obbligazioni</title>
 <meta name="description" content="Calcola rendimento a scadenza, prezzo tel quel, rateo, duration, convessità e rendimento netto di un'obbligazione.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="preload" href="fonts/ibm-plex-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/instrument-serif-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div class="page">
   <header class="masthead">
-    <p class="eyebrow">Reddito fisso · prezzi per 100 di nominale</p>
-    <h1>Calcolatore <em>Rendimento</em> Obbligazioni</h1>
-    <p class="lede">Rendimento a scadenza, rateo, prezzo tel quel, duration e rendimento netto per il risparmiatore italiano. Convenzioni ICMA, risultati allineati alle funzioni <span class="mono">PRICE</span> e <span class="mono">YIELD</span> di Excel.</p>
+    <div class="masthead-text">
+      <p class="eyebrow">Reddito fisso · prezzi per 100 di nominale</p>
+      <h1>Calcolatore <em>Rendimento</em> Obbligazioni</h1>
+      <p class="lede">Rendimento a scadenza, rateo, prezzo tel quel, duration e rendimento netto per il risparmiatore italiano. Convenzioni ICMA, risultati allineati alle funzioni <span class="mono">PRICE</span> e <span class="mono">YIELD</span> di Excel.</p>
+    </div>
+    <canvas id="rosette" class="rosette" aria-hidden="true"></canvas>
   </header>
 
   <main class="layout">
@@ -148,7 +151,7 @@
       <div id="output">
         <div class="headline">
           <div class="figure primary">
-            <span class="label">Rendimento effettivo annuo lordo</span>
+            <span class="label">Rendimento lordo</span>
             <span class="value" id="r-eff">–</span>
             <span class="sub" id="r-ytm">–</span>
           </div>
@@ -170,8 +173,16 @@
         </div>
 
         <div class="panel">
+          <div class="panel-head">
+            <h2>Dal lordo al netto</h2>
+            <span class="hint">Rendimento effettivo annuo</span>
+          </div>
+          <div class="waterfall" id="waterfall"></div>
+        </div>
+
+        <div class="panel">
           <h2>Dettaglio</h2>
-          <dl class="facts" id="facts"></dl>
+          <div class="fact-groups" id="facts"></div>
         </div>
 
         <div class="panel">
@@ -213,6 +224,15 @@
       </div>
     </section>
   </main>
+
+  <div class="dock" id="dock" hidden>
+    <dl>
+      <div><dt>Lordo</dt><dd id="dock-gross">–</dd></div>
+      <div><dt>Netto</dt><dd id="dock-net">–</dd></div>
+      <div><dt id="dock-third-label">Prezzo</dt><dd id="dock-third">–</dd></div>
+    </dl>
+    <a href="#output" class="dock-link">Risultati</a>
+  </div>
 
   <section class="method panel">
     <h2>Come calcola</h2>

@@ -82,7 +82,18 @@ body {
 
 /* ---------------------------------------------------------------- testata */
 
-.masthead { display: grid; gap: 8px; max-width: 62ch; }
+.masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+}
+.masthead-text { display: grid; gap: 8px; max-width: 62ch; }
+.rosette { width: clamp(150px, 18vw, 210px); aspect-ratio: 1; max-width: 100%; }
+@media (max-width: 640px) {
+  .masthead { grid-template-columns: minmax(0, 1fr); }
+  .rosette { display: none; }
+}
 .eyebrow {
   margin: 0;
   font-size: var(--step--1);
@@ -237,10 +248,12 @@ summary { cursor: pointer; font-weight: 500; }
 }
 @media (max-width: 1100px) { .headline { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
+/* Le tre righe di ogni riquadro sono allineate fra riquadri con subgrid. */
 .figure {
   display: grid;
-  align-content: start;
-  gap: 4px;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  row-gap: 4px;
   padding: 16px;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -258,12 +271,21 @@ summary { cursor: pointer; font-weight: 500; }
 .figure.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .figure.primary .label, .figure.primary .sub { color: var(--accent-ink); opacity: 0.85; }
 
-.facts {
-  margin: 0;
+.fact-groups {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0 28px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px 32px;
 }
+.fact-group { display: grid; align-content: start; gap: 2px; min-width: 0; }
+.fact-group h3 {
+  margin: 0;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.facts { margin: 0; display: grid; }
 .facts div {
   display: flex;
   justify-content: space-between;
@@ -274,6 +296,31 @@ summary { cursor: pointer; font-weight: 500; }
 }
 .facts dt { color: var(--muted); }
 .facts dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ------------------------------------------------------- dal lordo al netto */
+
+.waterfall { display: grid; gap: 6px; }
+.wf-row {
+  display: grid;
+  grid-template-columns: minmax(8.5rem, 13rem) minmax(0, 1fr) 5.5rem;
+  align-items: center;
+  gap: 14px;
+  min-height: 28px;
+}
+.wf-label { font-size: var(--step--1); color: var(--ink); min-width: 0; }
+.wf-label small { display: block; color: var(--muted); font-size: 0.75rem; }
+.wf-track { position: relative; height: 14px; }
+.wf-track::before { content: ""; position: absolute; inset: 6px 0 auto; border-top: 1px solid var(--line); }
+.wf-bar { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: var(--accent); }
+.wf-row.cut .wf-bar { background: var(--series-2); }
+.wf-row.total .wf-label { font-weight: 600; }
+.wf-row.off .wf-label, .wf-row.off .wf-value { color: var(--muted); }
+.wf-value { font-family: var(--font-mono); font-size: 0.875rem; text-align: right; font-variant-numeric: tabular-nums; }
+.wf-row.total + .wf-row.total, .wf-row.cut + .wf-row.total { border-top: 1px solid var(--line); padding-top: 6px; }
+@media (max-width: 520px) {
+  .wf-row { grid-template-columns: minmax(0, 1fr) 5rem; gap: 4px 12px; }
+  .wf-track { grid-column: 1 / -1; grid-row: 2; }
+}
 
 /* ---------------------------------------------------------------- grafico */
 
@@ -335,6 +382,40 @@ table.coupons td:first-child {
 }
 table.coupons tr.redeem td:first-child { font-style: italic; }
 .neg { color: var(--danger); }
+
+/* ------------------------------------------- riepilogo fisso (telefono) */
+
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -6px 18px rgb(0 0 0 / 0.08);
+}
+.dock dl { margin: 0; display: flex; gap: 18px; min-width: 0; }
+.dock dl div { display: grid; min-width: 0; }
+.dock dt { font-size: 0.75rem; color: var(--muted); }
+.dock dd { margin: 0; font-family: var(--font-mono); font-size: var(--step-0); font-weight: 500; font-variant-numeric: tabular-nums; }
+.dock-link {
+  flex: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+.dock-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+@media (min-width: 921px) { .dock { display: none !important; } }
+@media (max-width: 920px) { .page { padding-block-end: 96px; } }
 
 /* ---------------------------------------------------------------- metodo */
 
