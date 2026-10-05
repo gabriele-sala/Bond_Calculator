@@ -55,7 +55,7 @@
   </header>
 
   <main class="layout">
-    <form id="bond-form" class="panel inputs" novalidate>
+    <form id="bond-form" class="panel inputs" novalidate autocomplete="off">
       <div class="isin-box" id="isin-box">
         <div class="market" role="radiogroup" aria-labelledby="market-label">
           <span class="market-label" id="market-label">Mercato</span>
@@ -143,7 +143,7 @@
         </div>
         <div class="field" id="price-field">
           <label for="price">Prezzo di acquisto / simulazione</label>
-          <input id="price" type="text" inputmode="decimal" autocomplete="off" placeholder="100" aria-describedby="price-help price-default">
+          <input id="price" type="text" inputmode="decimal" autocomplete="off" placeholder="100" aria-describedby="price-help">
           <p class="field-help" id="price-help">Prezzo secco per 100 di nominale. Puoi inserire il prezzo di mercato attuale oppure qualsiasi prezzo ipotetico per simulare un acquisto.</p>
           <p class="field-help field-note" id="price-default" hidden>Prezzo non inserito: il calcolo usa 100, cioè la pari.</p>
         </div>
@@ -208,12 +208,14 @@
     <section class="results">
       <div id="error" class="error" role="alert" hidden></div>
 
+      <div class="share-row">
+        <span class="isin-status" id="share-status" role="status"></span>
+        <button type="button" class="btn btn-quiet" id="back-to-own" hidden>Torna alla tua analisi</button>
+        <button type="button" class="btn btn-quiet" id="share-btn">Condividi analisi</button>
+        <input type="text" id="share-url" class="share-url" readonly aria-label="Link dell'analisi" hidden>
+      </div>
+
       <div id="output">
-        <div class="share-row">
-          <button type="button" class="btn btn-quiet" id="share-btn">Condividi analisi</button>
-          <span class="isin-status" id="share-status" role="status"></span>
-          <input type="text" id="share-url" class="share-url" readonly aria-label="Link dell'analisi" hidden>
-        </div>
         <div class="headline">
           <div class="figure primary">
             <span class="label">Rendimento netto stimato</span>

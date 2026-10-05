@@ -29,6 +29,8 @@
     return /^[-+]?\d*\.?\d+(e[-+]?\d+)?$/i.test(t) ? Number(t) : NaN;
   }
   const show = (x, d) => (Number.isFinite(x) ? String(+x.toFixed(d)).replace('.', ',') : '');
+  // Valore esatto, senza arrotondare, con la virgola decimale.
+  const exact = (x) => Share.plain(x).replace('.', ',');
 
   // ------------------------------------------------------------- date
 
@@ -82,14 +84,28 @@
 
   const FIELDS = ['isin', 'settlement', 'maturity', 'coupon', 'freq', 'daycount', 'redemption', 'price', 'yield', 'yieldbasis', 'nominal', 'commission', 'tax', 'taxcustom', 'calldate', 'callprice'];
 
+  // Aperto un link condiviso, l'analisi salvata dall'utente resta com'è finché
+  // non modifica qualcosa: il link da solo non la sovrascrive.
+  let holdSave = false;
+
   function save() {
+    if (holdSave) return;
     try {
       const state = {};
       FIELDS.forEach((f) => (state[f] = $(f).value));
       state.mode = mode();
       state.stamp = $('stamp').checked;
+      state.isinLoaded = isinLoaded;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) { /* archiviazione non disponibile */ }
+  }
+
+  function hasSaved() {
+    try {
+      return !!localStorage.getItem(STORAGE_KEY);
+    } catch (e) {
+      return false;
+    }
   }
 
   function restore() {
@@ -100,6 +116,9 @@
       $('mode-' + (state.mode === 'yield' ? 'yield' : 'price')).checked = true;
       $('stamp').checked = !!state.stamp;
       $('call-details').open = !!state.calldate;
+      // Titolo già caricato dall'ISIN; i salvataggi precedenti non lo dicono.
+      const valid = Isin.isValid(Isin.normalize($('isin').value));
+      isinLoaded = valid && (state.isinLoaded === undefined ? true : !!state.isinLoaded);
       return true;
     } catch (e) {
       return false;
@@ -150,6 +169,7 @@
 
     const priceEmpty = m === 'price' && $('price').value.trim() === '';
     $('price-default').hidden = !priceEmpty;
+    $('price').setAttribute('aria-describedby', priceEmpty ? 'price-help price-default' : 'price-help');
     if (priceEmpty) {
       // Senza prezzo inserito si calcola alla pari, come valore iniziale.
       input.cleanPrice = 100;
@@ -681,7 +701,11 @@
     isinLoaded = false;
     if (!Isin.isValid(code)) {
       $('isin').setAttribute('aria-invalid', 'true');
-      setIsinStatus(code ? 'Codice ISIN non valido: servono 12 caratteri (2 lettere, 9 lettere o cifre, 1 cifra di controllo). Controlla di averlo copiato per intero.' : 'Inserisci un codice ISIN, ad esempio IT0005607970.', 'warn');
+      setIsinStatus(!code
+        ? 'Inserisci un codice ISIN, ad esempio IT0005607970.'
+        : /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(code)
+          ? 'Codice ISIN non valido: l\'ultima cifra, di controllo, non corrisponde alle altre. Probabilmente c\'è un errore di battitura: controlla lettere e cifre.'
+          : 'Codice ISIN non valido: servono 12 caratteri (2 lettere, 9 lettere o cifre, 1 cifra di controllo). Controlla di averlo copiato per intero.', 'warn');
       updatePriceLink();
       syncSteps();
       return;
@@ -714,6 +738,7 @@
         return;
       }
       const v = r.values;
+      userEdited();
       $('maturity').value = v.maturity;
       $('coupon').value = show(v.coupon, 4);
       $('freq').value = String(v.freq);
@@ -747,6 +772,8 @@
       $('isin-load').disabled = false;
       $('isin-load').textContent = 'Carica';
       $('isin-box').removeAttribute('aria-busy');
+      // Disattivato durante il caricamento, il pulsante perde il fuoco: lo riprende.
+      if (!document.activeElement || document.activeElement === document.body) $('isin-load').focus();
     }
   }
 
@@ -872,7 +899,10 @@
   }
 
   function openPosition(pos) {
+    userEdited();
     $('isin').value = pos.isin || '';
+    $('isin').setAttribute('aria-invalid', 'false');
+    isinLoaded = Isin.isValid(Isin.normalize(pos.isin || ''));
     setIsinStatus('');
     updatePriceLink();
     $('maturity').value = pos.maturity;
@@ -893,6 +923,7 @@
     $('commission').value = '0';
     $('stamp').checked = false;
     compute();
+    syncSteps();
     setIsinStatus(pos.label + ': aperto dal confronto, senza commissioni né bollo.', 'ok');
     $('bond-form').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     $('price').focus({ preventScroll: true });
@@ -1134,6 +1165,31 @@
     $('share-status').className = 'isin-status' + (kind ? ' ' + kind : '');
   }
 
+  // Messaggi legati a dati che l'utente ha appena cambiato: link copiato,
+  // link aperto, ripristino. Spariscono alla prima modifica.
+  function clearNotices() {
+    setShareStatus('', '');
+    $('share-url').hidden = true;
+    $('share-url').value = '';
+    $('back-to-own').hidden = true;
+    $('reset-status').textContent = '';
+  }
+
+  // Toglie i dati del link dall'indirizzo: ricaricando si ritrova l'analisi salvata.
+  function cleanUrl() {
+    try {
+      if (location.search) history.replaceState(null, '', location.pathname + location.hash);
+    } catch (e) { /* cronologia non modificabile */ }
+  }
+
+  // Alla prima modifica l'analisi del link diventa quella dell'utente: si salva
+  // e l'indirizzo torna pulito.
+  function userEdited() {
+    if (holdSave) cleanUrl();
+    holdSave = false;
+    clearNotices();
+  }
+
   // Dati del calcolatore in formato tecnico, per il link condiviso.
   function shareState() {
     const code = Isin.normalize($('isin').value);
@@ -1169,24 +1225,26 @@
     if (d.isin) $('isin').value = d.isin;
     $('settlement').value = d.settlement || B.toISO(defaultSettlement());
     $('maturity').value = d.maturity;
-    if (d.coupon !== undefined) $('coupon').value = show(d.coupon, 6);
+    // Valori scritti per intero: il destinatario calcola sugli stessi numeri.
+    if (d.coupon !== undefined) $('coupon').value = exact(d.coupon);
     if (d.freq) $('freq').value = d.freq;
     if (d.daycount) $('daycount').value = d.daycount;
-    if (d.redemption !== undefined) $('redemption').value = show(d.redemption, 6);
+    if (d.redemption !== undefined) $('redemption').value = exact(d.redemption);
     $('mode-' + (d.mode === 'yield' ? 'yield' : 'price')).checked = true;
-    $('price').value = d.price !== undefined ? show(d.price, 6) : '';
-    if (d.yield !== undefined) $('yield').value = show(d.yield, 9);
+    $('price').value = d.price !== undefined ? exact(d.price) : '';
+    if (d.yield !== undefined) $('yield').value = exact(d.yield);
     if (d.yieldbasis) $('yieldbasis').value = d.yieldbasis;
-    if (d.nominal !== undefined) $('nominal').value = num(d.nominal, Number.isInteger(d.nominal) ? 0 : 2);
-    if (d.commission !== undefined) $('commission').value = show(d.commission, 2);
+    if (d.nominal !== undefined) $('nominal').value = Number.isInteger(d.nominal) ? num(d.nominal, 0) : exact(d.nominal);
+    if (d.commission !== undefined) $('commission').value = exact(d.commission);
     if (d.tax !== undefined) {
       const opt = ['0.125', '0.26', '0'].find((o) => Math.abs(Number(o) - d.tax) < 1e-12);
       $('tax').value = opt || 'custom';
-      $('taxcustom').value = opt ? '' : show(d.tax * 100, 6);
+      // L'aliquota viaggia come frazione: tolgo il rumore della moltiplicazione per 100.
+      $('taxcustom').value = opt ? '' : exact(+(d.tax * 100).toPrecision(12));
     }
     if (d.stamp !== undefined) $('stamp').checked = d.stamp;
     $('calldate').value = d.calldate || '';
-    $('callprice').value = d.calldate && d.callprice !== undefined ? show(d.callprice, 6) : '';
+    $('callprice').value = d.calldate && d.callprice !== undefined ? exact(d.callprice) : '';
     $('call-details').open = !!d.calldate;
   }
 
@@ -1197,6 +1255,7 @@
     }
     const url = location.href.split('#')[0].split('?')[0] + '?' + Share.encode(shareState());
     $('share-url').hidden = true;
+    $('back-to-own').hidden = true;
     if (navigator.share) {
       try {
         await navigator.share({ title: 'Analisi obbligazione', url });
@@ -1231,14 +1290,31 @@
     $('yieldbasis').value = 'eff';
   }
 
+  // Dopo un link condiviso: torna all'analisi che l'utente aveva salvato.
+  function backToOwn() {
+    userEdited();
+    if (!restore()) applyDefaults();
+    const s = B.parseDate($('settlement').value);
+    if (!s || s < todayUTC()) $('settlement').value = B.toISO(defaultSettlement());
+    $('isin').setAttribute('aria-invalid', 'false');
+    setIsinStatus('');
+    updatePriceLink();
+    compute();
+    syncSteps();
+    onSettlementInput();
+    setShareStatus('Hai di nuovo la tua analisi.', 'ok');
+    $('share-btn').focus();
+  }
+
   function resetCalculator() {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch (e) { /* archiviazione non disponibile */ }
+    userEdited();
     applyDefaults();
     isinLoaded = false;
+    document.querySelectorAll('#bond-form [aria-invalid="true"]').forEach((el) => el.setAttribute('aria-invalid', 'false'));
     setIsinStatus('');
-    setShareStatus('', '');
     updatePriceLink();
     syncSteps();
     compute();
@@ -1251,30 +1327,38 @@
 
   function init() {
     // Un link condiviso ricostruisce l'analisi così com'era, data compresa.
-    const shared = window.Share && Share.decode(location.search);
+    const link = Share.parse(location.search);
+    const shared = link.data;
+    const ownSaved = hasSaved();
     if (shared) {
       applyDefaults();
       applyShared(shared);
-      try {
-        history.replaceState(null, '', location.pathname + location.hash);
-      } catch (e) { /* cronologia non modificabile */ }
+      isinLoaded = !!shared.isin;
+      holdSave = true;
     } else {
       if (!restore()) applyDefaults();
       // Una data di regolamento passata viene riportata a T+2.
       const s = B.parseDate($('settlement').value);
       if (!s || s < todayUTC()) $('settlement').value = B.toISO(defaultSettlement());
     }
+    // Il link resta nell'indirizzo finché non si modifica nulla, così una
+    // ricarica lo riapre; un link senza analisi si toglie subito.
+    if (link.known && !shared) cleanUrl();
 
     renderMarkets();
     $('market-list').addEventListener('click', (e) => {
       const chip = e.target.closest('[data-market]');
-      if (!chip) return;
+      if (!chip || chip.dataset.market === marketId) return;
       marketId = chip.dataset.market;
       renderMarkets();
+      // Il pulsante è stato ridisegnato: il fuoco passa a quello nuovo.
+      const next = $('market-list').querySelector('[aria-checked="true"]');
+      if (next) next.focus();
       updatePriceLink();
     });
     $('reset-calc').addEventListener('click', resetCalculator);
     $('share-btn').addEventListener('click', shareAnalysis);
+    $('back-to-own').addEventListener('click', backToOwn);
     $('isin-price').addEventListener('click', () => {
       if (isinLoaded && !$('price').value.trim()) setStep(4);
     });
@@ -1303,6 +1387,7 @@
 
     $('preset').addEventListener('change', (e) => {
       $('isin').value = '';
+      $('isin').setAttribute('aria-invalid', 'false');
       setIsinStatus('');
       isinLoaded = false;
       updatePriceLink();
@@ -1334,6 +1419,7 @@
       compute();
     });
     $('bond-form').addEventListener('input', (e) => {
+      userEdited();
       if (e.target.id === 'isin' || e.target.id === 'preset' || e.target.id === 'yieldbasis' || e.target.name === 'mode') return;
       compute();
     });
@@ -1362,7 +1448,15 @@
     }
     compute();
     syncSteps();
-    if (shared) setShareStatus('Analisi aperta da un link condiviso: dati e data di regolamento sono quelli del link.', 'info');
+    if (shared && link.problems.length) {
+      setShareStatus('Link incompleto o modificato. Dati mancanti o non validi: ' + link.problems.join(', ') + '. Al loro posto ci sono i valori iniziali: controllali prima di usare i risultati.', 'warn');
+    } else if (shared) {
+      setShareStatus('Analisi aperta da un link condiviso: dati e data di regolamento sono quelli del link.', 'info');
+    } else if (link.known) {
+      setShareStatus('Link non valido: manca la data di scadenza del titolo, quindi l\'analisi non si può ricostruire.' + (ownSaved ? ' È rimasta la tua ultima analisi.' : ''), 'warn');
+    }
+    // La propria analisi salvata resta recuperabile finché non si modifica nulla.
+    if (shared && ownSaved) $('back-to-own').hidden = false;
   }
 
   init();

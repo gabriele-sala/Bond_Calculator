@@ -11,30 +11,46 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  const DATE = /^\d{4}-\d{2}-\d{2}$/;
   const NUM = /^-?\d+(\.\d+)?$/;
   const ISIN = /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/;
+  // Data AAAA-MM-GG che esiste davvero (niente 30 febbraio).
+  function isDate(v) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    if (!m) return false;
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+    return d.getUTCFullYear() === +m[1] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3];
+  }
+  const TEXT = new Set(['isin', 'settlement', 'maturity', 'calldate', 'freq', 'daycount', 'mode', 'yieldbasis']);
 
-  // Parametro dell'URL -> campo dell'analisi, con la regola di validazione.
+  // Parametro dell'URL -> campo dell'analisi, regola di validazione, nome per l'utente.
   const PARAMS = [
-    ['isin', 'isin', (v) => ISIN.test(v)],
-    ['regolamento', 'settlement', (v) => DATE.test(v)],
-    ['scadenza', 'maturity', (v) => DATE.test(v)],
-    ['cedola', 'coupon', (v) => NUM.test(v)],
-    ['frequenza', 'freq', (v) => ['1', '2', '4', '12'].includes(v)],
-    ['giorni', 'daycount', (v) => ['ACT/ACT', '30/360', '30E/360', 'ACT/360', 'ACT/365'].includes(v)],
-    ['rimborso', 'redemption', (v) => NUM.test(v)],
-    ['modo', 'mode', (v) => v === 'price' || v === 'yield'],
-    ['prezzo', 'price', (v) => NUM.test(v)],
-    ['rendimento', 'yield', (v) => NUM.test(v)],
-    ['base', 'yieldbasis', (v) => v === 'eff' || v === 'nom'],
-    ['nominale', 'nominal', (v) => NUM.test(v)],
-    ['commissioni', 'commission', (v) => NUM.test(v)],
-    ['tassa', 'tax', (v) => NUM.test(v)],
-    ['bollo', 'stamp', (v) => v === '1' || v === '0'],
-    ['call', 'calldate', (v) => DATE.test(v)],
-    ['prezzocall', 'callprice', (v) => NUM.test(v)],
+    ['isin', 'isin', (v) => ISIN.test(v), 'ISIN'],
+    ['regolamento', 'settlement', isDate, 'data di regolamento'],
+    ['scadenza', 'maturity', isDate, 'scadenza'],
+    ['cedola', 'coupon', (v) => NUM.test(v), 'cedola'],
+    ['frequenza', 'freq', (v) => ['1', '2', '4', '12'].includes(v), 'frequenza'],
+    ['giorni', 'daycount', (v) => ['ACT/ACT', '30/360', '30E/360', 'ACT/360', 'ACT/365'].includes(v), 'convenzione dei giorni'],
+    ['rimborso', 'redemption', (v) => NUM.test(v), 'prezzo di rimborso'],
+    ['modo', 'mode', (v) => v === 'price' || v === 'yield', 'calcolo dal prezzo o dal rendimento'],
+    ['prezzo', 'price', (v) => NUM.test(v), 'prezzo'],
+    ['rendimento', 'yield', (v) => NUM.test(v), 'rendimento'],
+    ['base', 'yieldbasis', (v) => v === 'eff' || v === 'nom', 'tipo di rendimento'],
+    ['nominale', 'nominal', (v) => NUM.test(v), 'nominale'],
+    ['commissioni', 'commission', (v) => NUM.test(v), 'commissioni'],
+    ['tassa', 'tax', (v) => NUM.test(v), 'aliquota'],
+    ['bollo', 'stamp', (v) => v === '1' || v === '0', 'bollo'],
+    ['call', 'calldate', isDate, 'data di call'],
+    ['prezzocall', 'callprice', (v) => NUM.test(v), 'prezzo di call'],
   ];
+  // Parametri che il pulsante "Condividi analisi" scrive sempre. Il prezzo no:
+  // senza prezzo il calcolo usa 100 da entrambe le parti.
+  const ALWAYS = ['regolamento', 'scadenza', 'cedola', 'frequenza', 'giorni', 'rimborso', 'modo', 'nominale', 'commissioni', 'tassa', 'bollo'];
+
+  // Numero in notazione decimale semplice, mai esponenziale (1e-7 -> 0.0000001).
+  function plain(n) {
+    const s = String(+n.toPrecision(15));
+    return /e/i.test(s) ? n.toFixed(20).replace(/\.?0+$/, '') : s;
+  }
 
   /**
    * Dati dell'analisi -> query string. Valori in formato tecnico: numeri con il
@@ -46,27 +62,48 @@
       let v = state[field];
       if (v === undefined || v === null || v === '' || (typeof v === 'number' && !Number.isFinite(v))) continue;
       if (typeof v === 'boolean') v = v ? '1' : '0';
+      else if (typeof v === 'number') v = plain(v);
       q.set(param, String(v));
     }
     return q.toString();
   }
 
   /**
-   * Query string -> dati dell'analisi. Ignora i parametri sconosciuti o non
-   * validi; restituisce null se il link non contiene un'analisi.
+   * Query string -> dati dell'analisi, con quello che non si è potuto leggere.
+   * - data: i campi validi, oppure null se manca la scadenza;
+   * - known: il link contiene almeno un parametro del calcolatore;
+   * - problems: nomi per l'utente dei dati mancanti o non validi.
    */
-  function decode(search) {
+  function parse(search) {
     const q = new URLSearchParams(search || '');
     const out = {};
-    let found = 0;
-    for (const [param, field, valid] of PARAMS) {
+    const problems = [];
+    let known = false;
+    for (const [param, field, valid, label] of PARAMS) {
+      if (!q.has(param)) {
+        if (ALWAYS.includes(param)) problems.push(label);
+        continue;
+      }
+      known = true;
       const v = (q.get(param) || '').trim();
-      if (!v || !valid(v)) continue;
-      out[field] = field === 'stamp' ? v === '1' : field === 'isin' || field === 'settlement' || field === 'maturity' || field === 'calldate' || field === 'freq' || field === 'daycount' || field === 'mode' || field === 'yieldbasis' ? v : Number(v);
-      found++;
+      if (!v || !valid(v)) {
+        problems.push(label);
+        continue;
+      }
+      out[field] = field === 'stamp' ? v === '1' : TEXT.has(field) ? v : Number(v);
     }
-    return found && out.maturity ? out : null;
+    if (out.mode === 'yield') {
+      if (out.yield === undefined && !problems.includes('rendimento')) problems.push('rendimento');
+      if (out.yieldbasis === undefined && !problems.includes('tipo di rendimento')) problems.push('tipo di rendimento');
+    }
+    if (out.calldate && out.callprice === undefined && !problems.includes('prezzo di call')) problems.push('prezzo di call');
+    return { data: out.maturity ? out : null, known, problems };
   }
 
-  return { PARAMS, encode, decode };
+  /** Solo i dati: null se il link non contiene un'analisi. */
+  function decode(search) {
+    return parse(search).data;
+  }
+
+  return { PARAMS, encode, decode, parse, plain };
 });

@@ -503,6 +503,7 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 }
 .steps li { display: inline-flex; align-items: center; gap: 5px; }
 .step-n {
+  flex: none;
   display: inline-grid;
   place-items: center;
   width: 18px;
@@ -515,6 +516,11 @@ input[aria-invalid="true"] { border-color: var(--danger); }
 .steps li.current { color: var(--ink); font-weight: 600; }
 .steps li.current .step-n { border-color: var(--accent); color: var(--accent); }
 .steps li.done .step-n { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+/* Contrasto elevato: completati pieni, quello corrente bordato più spesso. */
+@media (forced-colors: active) {
+  .steps li.done .step-n { forced-color-adjust: none; background: Highlight; border-color: Highlight; color: HighlightText; }
+  .steps li.current .step-n { border-width: 2px; }
+}
 .isin-box[aria-busy="true"] .isin-row input { opacity: 0.7; }
 .isin-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
 .isin-row input { letter-spacing: 0.06em; text-transform: uppercase; }
@@ -552,7 +558,7 @@ input[aria-invalid="true"] { border-color: var(--danger); }
   font-weight: 500;
   text-decoration: none;
 }
-.isin-link:hover { background: var(--accent-soft); }
+.isin-link:hover { background: var(--accent-soft); color: var(--ink); }
 .isin-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .segmented {
@@ -704,6 +710,10 @@ summary { cursor: pointer; font-weight: 500; }
   .impact { padding: 10px; }
   .impact-value { font-size: var(--step-2); }
 }
+/* Telefoni stretti: una scheda per riga, così frase e importo restano dentro. */
+@media (max-width: 380px) {
+  .impacts { grid-template-columns: minmax(0, 1fr); }
+}
 
 .waterfall { display: grid; gap: 6px; }
 .wf-row {
@@ -821,7 +831,11 @@ table.coupons tr.redeem td:first-child { font-style: italic; }
 }
 .dock-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (min-width: 921px) { .dock { display: none !important; } }
-@media (max-width: 920px) { .page { padding-block-end: 96px; } }
+@media (max-width: 920px) {
+  .page { padding-block-end: 96px; }
+  /* Il fuoco da tastiera non finisce sotto la barra fissa. */
+  html { scroll-padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+}
 
 /* ------------------------------------------------- confronto e portafoglio */
 
@@ -847,6 +861,7 @@ table.coupons tr.redeem td:first-child { font-style: italic; }
 .preset-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .preset-row .btn { justify-self: start; min-height: 36px; font-size: var(--step--1); }
 .share-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 12px; }
+.share-row .isin-status { flex: 1 1 16rem; }
 .share-row .isin-status:empty { display: none; }
 .share-url { width: 100%; }
 
@@ -866,6 +881,7 @@ table.coupons tr.redeem td:first-child { font-style: italic; }
   gap: 12px;
 }
 @media (max-width: 1000px) { .pf-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 380px) { .pf-kpis { grid-template-columns: minmax(0, 1fr); } }
 .pf-kpi {
   display: grid;
   align-content: start;
@@ -940,7 +956,11 @@ table.coupons tr.redeem td:first-child { font-style: italic; }
 /* Telefoni: bersagli touch più grandi */
 @media (pointer: coarse) {
   .btn, .btn-small, .preset-row .btn, .isin-row button, .market-chip, .isin-link,
-  .pf-table input, .pf-custom input, .seg-small label { min-height: 44px; }
+  .pf-table input, .pf-custom input, .seg-small label,
+  input[type="text"], input[type="date"], select, .check { min-height: 44px; }
+  .segmented label, .dock-link { display: grid; place-items: center; min-height: 44px; padding-block: 0; }
+  summary { padding-block: 11px; }
+  details { padding-top: 4px; }
   .seg-mini label { min-height: 36px; }
   /* 16 px evita lo zoom automatico di Safari su iPhone quando si tocca un campo. */
   input[type="text"], input[type="date"], select, .pf-table input, .pf-custom input { font-size: 16px; }
