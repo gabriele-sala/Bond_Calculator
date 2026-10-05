@@ -9,15 +9,16 @@
 
   const nf = (min, max) => new Intl.NumberFormat('it-IT', { minimumFractionDigits: min, maximumFractionDigits: max });
   const fmt = {};
-  [0, 2, 3, 4, 6].forEach((d) => (fmt[d] = nf(d, d)));
+  [0, 1, 2, 3, 4, 6].forEach((d) => (fmt[d] = nf(d, d)));
   const upTo2 = nf(0, 2);
   const num = (x, d = 2) => (Number.isFinite(x) ? fmt[d].format(x) : '–');
   const pct = (x, d = 3) => (Number.isFinite(x) ? fmt[d].format(x * 100) + '%' : '–');
   const eur = (x) => (Number.isFinite(x) ? fmt[2].format(x) + ' €' : '–');
-  const signed = (x, d = 2) => (x > 0 ? '+' : '') + num(x, d);
+  const signed = (x, d = 2) => (x > 0 ? '+' : x < 0 ? '−' : '') + num(Math.abs(x), d);
   const dateIt = new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
   const fdate = (dt) => dateIt.format(dt);
   const FREQ_LABEL = { 1: 'annuale', 2: 'semestrale', 4: 'trimestrale', 12: 'mensile' };
+  const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
   // Accetta sia "1.234,56" sia "1234.56". Per gli importi in euro
   // "10.000" è letto come diecimila.
@@ -199,6 +200,8 @@
       $('error').textContent = errors[0];
       $('error').hidden = false;
       $('output').style.opacity = '0.35';
+      last = null;
+      updateDock();
       return;
     }
     $('error').hidden = true;
@@ -237,7 +240,7 @@
       ['Rendimento corrente', pct(r.currentYield)],
       ['YTM nominale (' + FREQ_LABEL[f] + ')', pct(r.ytm, 4)],
       ['Rendimento effettivo lordo', pct(r.ytmEffective, 4)],
-      ['Rendimento effettivo netto', pct(inv.effective, 4)],
+      ['Rendimento netto stimato', pct(inv.effective, 4)],
     ];
     if (r.callError) yieldFacts.push(['Yield to call', r.callError]);
     else if (Number.isFinite(r.ytc)) {
@@ -276,6 +279,8 @@
     renderWaterfall(input, r);
     updateDock(r);
     drawRosette(b, input);
+    renderImpacts(input, r);
+    renderBreakEven(input, r);
     renderScenarios(r);
     renderCashflows(input, r);
     drawChart();
@@ -294,7 +299,7 @@
       { kind: 'cut', label: 'Imposte', note: input.taxRate > 0 ? 'aliquota ' + upTo2.format(input.taxRate * 100) + '%' : 'nessuna', on: input.taxRate > 0, from: afterTax, to: gross },
       { kind: 'cut', label: 'Commissioni', note: input.commission > 0 ? eur(input.commission) : 'nessuna', on: input.commission > 0, from: afterComm, to: afterTax },
       { kind: 'cut', label: 'Imposta di bollo', note: input.stampDuty ? '0,20% annuo' : 'non inclusa', on: input.stampDuty, from: net, to: afterComm },
-      { kind: 'total', label: 'Rendimento netto', from: 0, to: net, text: pct(net) },
+      { kind: 'total', label: 'Rendimento netto stimato', from: 0, to: net, text: pct(net) },
     ];
     const lo = Math.min(0, gross, net, afterTax, afterComm);
     const hi = Math.max(0, gross, net, afterTax, afterComm) || 1;
@@ -371,9 +376,78 @@
     if (last) drawRosette(last.result.bond, last.input);
   }
 
+  // Variazioni di prezzo in evidenza sopra il grafico.
+  function renderImpacts(input, r) {
+    const Q = input.nominal / 100;
+    const rows = B.scenarios(r.bond, r.ytm, [100, 200, -100], true);
+    $('impacts').innerHTML = rows
+      .map((s) => {
+        const euro = Q * (s.dirty - r.dirty);
+        const cls = s.change < 0 ? ' neg' : '';
+        return `<div class="impact"><span class="impact-shift">${s.bp > 0 ? '+' : '−'}${Math.abs(s.bp)} pb</span><span class="impact-value${cls}">${signed(s.change * 100, 1)}%</span><span class="impact-euro${cls}">${euro < 0 ? '−' : '+'}${num(Math.abs(euro), 0)} €</span></div>`;
+      })
+      .join('');
+  }
+
+  // Durata leggibile fra due date: "1 anno e 7 mesi", "8 mesi", "12 giorni".
+  function spanIt(from, to) {
+    const days = B.actualDays(from, to);
+    if (days < 45) return days === 1 ? '1 giorno' : days + ' giorni';
+    const months = Math.round(days / 30.4375);
+    const y = Math.floor(months / 12), m = months % 12;
+    const ys = y ? (y === 1 ? '1 anno' : y + ' anni') : '';
+    const ms = m ? (m === 1 ? '1 mese' : m + ' mesi') : '';
+    return ys && ms ? ys + ' e ' + ms : ys || ms;
+  }
+
+  const bpIt = (d) => (d > 0 ? '+' : d < 0 ? '−' : '') + num(Math.abs(d) * 1e4, 0) + ' pb';
+
+  // Rialzo di pareggio a 1 e 3 anni e tempi di recupero dopo un rialzo improvviso.
+  function renderBreakEven(input, r) {
+    const b = r.bond;
+    const opts = { nominal: input.nominal, cleanPrice: r.clean, taxRate: input.taxRate, commission: input.commission, stampDuty: input.stampDuty };
+    const showNet = input.taxRate > 0 || input.commission > 0 || input.stampDuty;
+    $('breakeven').innerHTML = [1, 3]
+      .map((years) => {
+        const label = years === 1 ? 'Fra 1 anno' : 'Fra 3 anni';
+        const beNom = B.breakEvenShift(b, opts, r.ytm, years);
+        if (!beNom) return `<div class="be"><span class="be-label">${label}</span><span class="be-value">–</span><span class="be-sub">Il titolo scade entro questa data.</span></div>`;
+        // Rialzo espresso sul rendimento effettivo annuo, come in testata.
+        const toEff = (dn) => (Number.isFinite(dn) ? B.nominalToEffective(r.ytm + dn, b.freq) - r.ytmEffective : dn);
+        const be = { gross: toEff(beNom.gross), net: toEff(beNom.net) };
+        const main = showNet ? be.net : be.gross;
+        let value, sub;
+        if (main === Infinity) {
+          value = 'oltre +10.000 pb';
+          sub = 'Con questa vita residua il prezzo quasi non risente dei tassi.';
+        } else if (main === -Infinity) {
+          value = 'nessun margine';
+          sub = 'Anche a rendimenti invariati non recuperi i costi entro questa data.';
+        } else {
+          const level = r.ytmEffective + main;
+          value = bpIt(main);
+          sub = `Sei in pari finché il rendimento non supera il <b>${pct(level, 2)}</b>` +
+            (showNet && Number.isFinite(be.gross) ? `. Al lordo: ${bpIt(be.gross)}.` : '.');
+        }
+        return `<div class="be"><span class="be-label">${label}${showNet ? ', netto stimato' : ''}</span><span class="be-value">${value}</span><span class="be-sub">${sub}</span></div>`;
+      })
+      .join('');
+
+    const Q = input.nominal / 100;
+    const settle = b.params.settlement;
+    $('recovery').querySelector('tbody').innerHTML = B.scenarios(b, r.ytm, [50, 100, 200], true)
+      .map((s) => {
+        const rec = B.recoveryTime(b, opts, r.ytm, s.yield - r.ytm);
+        const cell = (x) => (x ? (x.years === 0 ? 'subito' : spanIt(settle, x.date)) : 'non entro la scadenza');
+        const loss = Q * (s.dirty - r.dirty);
+        return `<tr><td>+${s.bp} pb</td><td><span class="neg">${signed(s.change * 100, 2)}% (−${num(Math.abs(loss), 0)} €)</span></td><td>${cell(rec.gross)}</td><td>${showNet ? cell(rec.net) : cell(rec.gross)}</td></tr>`;
+      })
+      .join('');
+  }
+
   function renderScenarios(r) {
     const b = r.bond;
-    const rows = B.scenarios(b, r.ytm, [-200, -100, -50, 0, 50, 100, 200]);
+    const rows = B.scenarios(b, r.ytm, [-200, -100, -50, 0, 50, 100, 200], true);
     $('scenarios').querySelector('tbody').innerHTML = rows
       .map((s) => {
         const cls = s.bp === 0 ? ' class="now"' : '';
@@ -619,6 +693,349 @@
     }
   }
 
+  // --------------------------------------------- confronto e portafoglio
+
+  const PF = window.Portfolio;
+  const PF_KEY = 'bondcalc:portafoglio';
+  const EXAMPLE = [
+    // ISIN dall'elenco del MEF; prezzi ricavati da rendimenti effettivi ipotetici.
+    { isin: 'IT0005584849', yieldEff: 0.026 },
+    { isin: 'IT0005607970', yieldEff: 0.036 },
+    { isin: 'IT0005635583', yieldEff: 0.04 },
+    { isin: 'IT0005534141', yieldEff: 0.045 },
+  ];
+  let positions = [];
+  let pfSettlementKey = '';
+
+  function loadPositions() {
+    try {
+      const list = JSON.parse(localStorage.getItem(PF_KEY) || '[]');
+      positions = Array.isArray(list) ? list.filter((p) => p && p.maturity && Number.isFinite(p.cleanPrice) && Number.isFinite(p.nominal)) : [];
+    } catch (e) {
+      positions = [];
+    }
+  }
+
+  function savePositions() {
+    try {
+      localStorage.setItem(PF_KEY, JSON.stringify(positions));
+    } catch (e) { /* archiviazione non disponibile */ }
+  }
+
+  let idCounter = 0;
+  const newId = () => 'p' + (++idCounter) + '-' + positions.length + '-' + Math.floor(Math.random() * 1e6);
+
+  function setPfStatus(text, kind) {
+    $('pf-status').textContent = text;
+    $('pf-status').className = 'isin-status' + (kind ? ' ' + kind : '');
+  }
+
+  function pfSettlement() {
+    return B.parseDate($('settlement').value) || defaultSettlement();
+  }
+
+  function genericLabel(couponRate, maturityISO) {
+    return 'Cedola ' + upTo2.format(couponRate * 100) + '% ' + maturityISO.split('-').reverse().join('/');
+  }
+
+  async function addCurrentBond() {
+    if (!last || !$('error').hidden) {
+      setPfStatus('Completa prima i dati del titolo nel calcolatore: ' + ($('error').hidden ? 'mancano dei dati.' : $('error').textContent), 'warn');
+      return;
+    }
+    const { input, result } = last;
+    const pos = {
+      id: newId(),
+      label: genericLabel(input.couponRate, B.toISO(input.maturity)),
+      isin: '',
+      maturity: B.toISO(input.maturity),
+      couponRate: input.couponRate,
+      freq: input.freq,
+      dayCount: input.dayCount,
+      redemption: input.redemption,
+      cleanPrice: +result.clean.toFixed(4),
+      nominal: input.nominal,
+      taxRate: input.taxRate,
+    };
+    // Se il titolo viene dall'elenco del MEF ne usa la descrizione.
+    const code = Isin.normalize($('isin').value);
+    if (Isin.isValid(code)) {
+      try {
+        const t = (await loadCatalog()).map.get(code);
+        if (t && t.scadenza === pos.maturity && (t.cedola == null || Math.abs(t.cedola / 100 - pos.couponRate) < 1e-9 || t.cedola === 0)) {
+          pos.label = t.descrizione;
+          pos.isin = code;
+        }
+      } catch (e) { /* senza elenco resta la descrizione generica */ }
+    }
+    positions.push(pos);
+    savePositions();
+    renderPortfolio();
+    const notes = [];
+    if (input.call) notes.push('la call non è considerata');
+    if (input.commission > 0 || input.stampDuty) notes.push('commissioni e bollo non sono considerati');
+    setPfStatus(`${pos.label} aggiunto: ${positions.length} ${positions.length === 1 ? 'titolo' : 'titoli'} nel confronto${notes.length ? ' (' + notes.join(', ') + ')' : ''}.`, 'ok');
+  }
+
+  async function loadExample() {
+    let catalog;
+    try {
+      catalog = await loadCatalog();
+    } catch (e) {
+      setPfStatus('Elenco dei titoli non disponibile: impossibile caricare l\'esempio.', 'warn');
+      return;
+    }
+    const settlement = pfSettlement();
+    const added = [];
+    for (const ex of EXAMPLE) {
+      const t = catalog.map.get(ex.isin);
+      if (!t || positions.some((p) => p.isin === ex.isin)) continue;
+      const r = Isin.toFormValues(t, B.toISO(settlement));
+      if (!r.values) continue;
+      const v = r.values;
+      const bond = B.createBond({ settlement, maturity: B.parseDate(v.maturity), couponRate: v.coupon / 100, freq: v.freq, redemption: v.redemption, dayCount: v.dayCount });
+      const clean = B.cleanFromYield(bond, B.effectiveToNominal(ex.yieldEff, v.freq));
+      added.push({
+        id: newId(), label: t.descrizione, isin: ex.isin, example: true,
+        maturity: v.maturity, couponRate: v.coupon / 100, freq: v.freq, dayCount: v.dayCount, redemption: v.redemption,
+        cleanPrice: +clean.toFixed(2), nominal: 10000, taxRate: 0.125,
+      });
+    }
+    if (!added.length) {
+      setPfStatus('I titoli dell\'esempio sono già nel confronto.', 'info');
+      return;
+    }
+    positions = positions.concat(added);
+    savePositions();
+    renderPortfolio();
+    setPfStatus(`Esempio caricato: ${added.length} BTP veri dall'elenco del MEF, con prezzi di esempio ricavati da rendimenti ipotetici fra il 2,6% e il 4,5%. Sostituiscili con i prezzi di mercato.`, 'info');
+  }
+
+  function openPosition(pos) {
+    $('isin').value = pos.isin || '';
+    setIsinStatus('');
+    updatePriceLink();
+    $('maturity').value = pos.maturity;
+    $('coupon').value = show(pos.couponRate * 100, 4);
+    $('freq').value = String(pos.freq);
+    $('daycount').value = pos.dayCount;
+    $('redemption').value = show(pos.redemption, 4);
+    $('mode-price').checked = true;
+    $('price').value = show(pos.cleanPrice, 4);
+    $('nominal').value = num(pos.nominal, 0);
+    const taxOption = ['0.125', '0.26', '0'].find((v) => Math.abs(Number(v) - pos.taxRate) < 1e-9);
+    $('tax').value = taxOption || 'custom';
+    if (!taxOption) $('taxcustom').value = show(pos.taxRate * 100, 4);
+    $('calldate').value = '';
+    $('callprice').value = '';
+    $('call-details').open = false;
+    // Il confronto non considera commissioni e bollo: stesso netto della riga.
+    $('commission').value = '0';
+    $('stamp').checked = false;
+    compute();
+    setIsinStatus(pos.label + ': aperto dal confronto, senza commissioni né bollo.', 'ok');
+    $('bond-form').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    $('price').focus({ preventScroll: true });
+  }
+
+  const pfMeasure = () => (document.querySelector('input[name="pf-measure"]:checked') || {}).value || 'now';
+  // Nodi della curva personalizzata in punti base; null se un campo non è valido.
+  function customNodes() {
+    let ok = true;
+    const nodes = ['pf-n2', 'pf-n10', 'pf-n30'].map((id) => {
+      const raw = $(id).value.trim().replace(/\u2212/g, '-').replace(/\s*pb$/i, '');
+      const v = raw === '' ? 0 : raw.includes('%') ? NaN : parseNum(raw);
+      $(id).setAttribute('aria-invalid', Number.isFinite(v) ? 'false' : 'true');
+      if (!Number.isFinite(v)) ok = false;
+      return v;
+    });
+    return ok ? nodes : null;
+  }
+  const beCell = (be, useNet) => {
+    if (!be) return '–';
+    const v = useNet ? be.net : be.gross;
+    if (v === Infinity) return 'oltre +10.000 pb';
+    if (v === -Infinity) return 'nessun margine';
+    return bpIt(v);
+  };
+
+  function renderPortfolio() {
+    const settlement = pfSettlement();
+    pfSettlementKey = B.toISO(settlement);
+    const empty = positions.length === 0;
+    $('pf-empty').hidden = !empty;
+    $('pf-body').hidden = empty;
+    $('pf-clear').hidden = empty;
+    if (empty) return;
+
+    const { rows, errors, totals } = PF.analyzePortfolio(positions, settlement);
+    const anyTax = rows.some((r) => r.pos.taxRate > 0);
+    $('pf-analysis').hidden = !totals;
+    $('pf-none').hidden = !!totals;
+
+    // Riquadri di sintesi
+    const next12 = B.addYears(settlement, 1);
+    const income12 = rows.reduce((s, r) => s + r.flows.filter((f) => f.kind === 'flusso' && f.date <= next12).reduce((a, f) => a + f.amount, 0), 0);
+    const kpis = totals ? [
+      ['Controvalore', eur(totals.marketValue), 'tel quel, ' + num(totals.nominal, 0) + ' € nominali'],
+      ['Rendimento lordo', pct(totals.irrGross, 2), 'tasso interno dei flussi'],
+      ['Netto stimato', pct(totals.irrNet, 2), 'con la tassazione di ogni titolo'],
+      ['Duration modificata', num(totals.modified, 2), 'vita residua media ' + num(totals.years, 1) + ' anni'],
+      ['DV01 totale', eur(totals.dv01), 'perdita per +1 pb'],
+      ['Incassi netti 12 mesi', eur(income12), 'cedole e rimborsi'],
+    ] : [];
+    $('pf-kpis').innerHTML = kpis.map(([l, v, s]) => `<div class="pf-kpi"><span class="label">${l}</span><span class="value">${v}</span><span class="sub">${s}</span></div>`).join('');
+
+    // Tabella di confronto
+    const rowHtml = rows.map((r) => {
+      const p = r.pos;
+      const label = esc(p.label);
+      const meta = [esc(p.isin || ''), 'tassazione ' + upTo2.format(p.taxRate * 100) + '%'].filter(Boolean).join(' · ');
+      return `<tr data-id="${esc(p.id)}">
+        <td><span class="pf-name">${label}${p.example ? '<span class="chip">esempio</span>' : ''}</span><span class="pf-meta">${meta}</span></td>
+        <td><input type="text" inputmode="decimal" aria-label="Nominale di ${label}" data-field="nominal" value="${num(p.nominal, 0)}"></td>
+        <td><input type="text" inputmode="decimal" aria-label="Prezzo secco di ${label}" data-field="cleanPrice" value="${show(p.cleanPrice, 4)}"></td>
+        <td>${pct(r.ytmEffective, 2)}</td>
+        <td>${pct(r.netEffective, 2)}</td>
+        <td>${num(r.modified, 2)}</td>
+        <td>${num(r.dv01, 2)}</td>
+        <td>${beCell(r.breakEven1, p.taxRate > 0)}</td>
+        <td><div class="pf-row-actions"><button type="button" class="btn btn-quiet btn-small" data-action="open" aria-label="Apri ${label} nel calcolatore">Apri</button><button type="button" class="btn btn-quiet btn-small" data-action="remove" aria-label="Rimuovi ${label}">Rimuovi</button></div></td>
+      </tr>`;
+    });
+    const errHtml = errors.map((e) => `<tr class="pf-error" data-id="${esc(e.pos.id)}"><td>${esc(e.pos.label)}</td><td colspan="7">${esc(e.message)}</td><td><div class="pf-row-actions"><button type="button" class="btn btn-quiet btn-small" data-action="remove" aria-label="Rimuovi ${esc(e.pos.label)}">Rimuovi</button></div></td></tr>`);
+    // Righe nell'ordine in cui i titoli sono stati aggiunti, errori compresi.
+    const htmlById = new Map();
+    rows.forEach((r, i) => htmlById.set(r.pos.id, rowHtml[i]));
+    errors.forEach((e, i) => htmlById.set(e.pos.id, errHtml[i]));
+    $('pf-table').querySelector('tbody').innerHTML = positions.map((p) => htmlById.get(p.id) || '').join('');
+    if (!totals) {
+      $('pf-table').querySelector('tfoot').innerHTML = '';
+      return;
+    }
+    $('pf-table').querySelector('tfoot').innerHTML = totals
+      ? `<tr><td>Portafoglio</td><td>${num(totals.nominal, 0)}</td><td></td><td>${pct(totals.irrGross, 2)}</td><td>${pct(totals.irrNet, 2)}</td><td>${num(totals.modified, 2)}</td><td>${num(totals.dv01, 2)}</td><td>${beCell(totals.breakEven1, anyTax)}</td><td></td></tr>`
+      : '';
+
+    // Scenari
+    const measure = pfMeasure();
+    const custom = customNodes();
+    if (!custom) setPfStatus('Curva personalizzata: scrivi gli spostamenti in punti base, ad esempio 25 o −25.', 'warn');
+    const scen = PF.SCENARIOS.slice();
+    if (custom && custom.some((x) => x !== 0)) scen.push({ key: 'custom', label: 'Personalizzato', nodes: custom, curve: true });
+    const cols = scen.map((sc) => (measure === 'now' ? PF.scenarioPnL(rows, sc.nodes) : PF.scenarioHorizon(rows, sc.nodes, 1, settlement)));
+    const valueOf = (x) => (measure === 'now' ? x.pct : anyTax ? x.net : x.gross);
+    const best = cols.map((c) => (measure === '1y' && rows.length > 1 ? c.items.reduce((bi, x, i, a) => (valueOf(x) > valueOf(a[bi]) ? i : bi), 0) : -1));
+    const cell = (x, isBest) => {
+      const v = valueOf(x);
+      const cls = v < 0 ? ' class="neg"' : '';
+      const extra = measure === 'now' ? `<small>${x.pnl < 0 ? '−' : '+'}${num(Math.abs(x.pnl), 0)} €</small>` : '';
+      return `<td${isBest ? ' class="best"' : ''}><span${cls}>${signed(v * 100, measure === 'now' ? 1 : 2)}%</span>${isBest ? '<span class="sr-only"> (migliore)</span>' : ''}${extra}</td>`;
+    };
+    const head = `<thead><tr><th scope="col">Titolo</th>${scen.map((sc) => `<th scope="col">${sc.label}</th>`).join('')}</tr></thead>`;
+    const body = rows.map((r, i) => `<tr><td>${esc(r.pos.label)}</td>${cols.map((c, j) => cell(c.items[i], best[j] === i)).join('')}</tr>`).join('');
+    const totalRow = `<tr class="total"><td>Portafoglio</td>${cols.map((c) => cell(c.total, false)).join('')}</tr>`;
+    $('pf-scen').innerHTML = `<caption class="sr-only">Scenari dei tassi</caption>${head}<tbody>${body}${totalRow}</tbody>`;
+    $('pf-scen-note').textContent = (measure === 'now'
+      ? 'Variazione immediata del controvalore tel quel se oggi i rendimenti effettivi annui si spostano. '
+      : `Rendimento${anyTax ? ' netto stimato' : ''} in 1 anno se oggi i rendimenti effettivi annui si spostano e restano lì: cedole incassate più prezzo di vendita fra un anno. Evidenziato il titolo migliore in ogni scenario. `) +
+      'Negli scenari di curva lo spostamento è fissato a 2, 10 e 30 anni e interpolato sulla vita residua di ogni titolo: irripidimento −25, +25, +50 pb; appiattimento +25, 0, −25 pb.';
+
+    // Incassi per anno
+    const cal = PF.cashflowCalendar(rows);
+    const tot = cal.reduce((s, e) => ({ g: s.g + e.couponsGross, n: s.n + e.couponsNet, r: s.r + e.redemptionsNet, t: s.t + e.couponsNet + e.redemptionsNet }), { g: 0, n: 0, r: 0, t: 0 });
+    $('pf-cal').querySelector('tbody').innerHTML = cal
+      .map((e) => `<tr><td>${e.year}</td><td>${num(e.couponsGross, 2)}</td><td>${num(e.couponsNet, 2)}</td><td>${e.redemptions ? num(e.redemptionsNet, 2) : ''}</td><td>${num(e.couponsNet + e.redemptionsNet, 2)}</td></tr>`)
+      .join('');
+    $('pf-cal').querySelector('tfoot').innerHTML = `<tr><td>Totale</td><td>${num(tot.g, 2)}</td><td>${num(tot.n, 2)}</td><td>${num(tot.r, 2)}</td><td>${num(tot.t, 2)}</td></tr>`;
+  }
+
+  // Ridisegna il portafoglio mantenendo il fuoco sul controllo equivalente.
+  function renderPortfolioKeepFocus() {
+    const a = document.activeElement;
+    const row = a && a.closest && a.closest('#pf-table tbody tr');
+    const key = row && { id: row.dataset.id, field: a.dataset.field, action: a.dataset.action };
+    renderPortfolio();
+    if (!key) return;
+    const tr = [...$('pf-table').querySelectorAll('tbody tr')].find((t) => t.dataset.id === key.id);
+    const target = tr && (key.field ? tr.querySelector(`[data-field="${key.field}"]`) : tr.querySelector(`[data-action="${key.action}"]`));
+    if (target) target.focus();
+  }
+
+  // Ricalcolo quando cambia la data di regolamento, anche se il calcolatore è in
+  // errore; con un breve ritardo, perché digitando l'anno passano date come 0002.
+  let pfTimer = null;
+  function onSettlementInput() {
+    clearTimeout(pfTimer);
+    pfTimer = setTimeout(() => {
+      const d = B.parseDate($('settlement').value);
+      if (!d || d.getUTCFullYear() < 1900) return;
+      if (B.toISO(d) !== pfSettlementKey) renderPortfolio();
+    }, 350);
+  }
+
+  function initPortfolio() {
+    loadPositions();
+    $('settlement').addEventListener('input', onSettlementInput);
+    $('pf-add').addEventListener('click', addCurrentBond);
+    $('pf-example').addEventListener('click', loadExample);
+    $('pf-clear').addEventListener('click', () => {
+      positions = [];
+      savePositions();
+      renderPortfolio();
+      setPfStatus('Confronto svuotato.', 'info');
+      $('pf-example').focus();
+    });
+    $('pf-table').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const id = btn.closest('tr').dataset.id;
+      const pos = positions.find((p) => p.id === id);
+      if (!pos) return;
+      if (btn.dataset.action === 'remove') {
+        const idx = positions.indexOf(pos);
+        positions = positions.filter((p) => p.id !== id);
+        savePositions();
+        renderPortfolio();
+        setPfStatus(pos.label + ' rimosso.', 'info');
+        // Il fuoco passa al titolo successivo, o al precedente, o al pulsante Aggiungi.
+        const next = positions[idx] || positions[idx - 1];
+        const tr = next && [...$('pf-table').querySelectorAll('tbody tr')].find((t) => t.dataset.id === next.id);
+        (tr && tr.querySelector('[data-action="remove"]') || $('pf-add')).focus();
+      } else {
+        openPosition(pos);
+      }
+    });
+    $('pf-table').addEventListener('change', (e) => {
+      const field = e.target.dataset.field;
+      if (!field) return;
+      const pos = positions.find((p) => p.id === e.target.closest('tr').dataset.id);
+      const v = parseNum(e.target.value, field === 'nominal');
+      let problem = !pos || !(v > 0) ? (field === 'nominal' ? 'Il nominale deve essere maggiore di zero.' : 'Il prezzo deve essere maggiore di zero.') : '';
+      if (!problem) {
+        try {
+          PF.analyzePosition({ ...pos, [field]: v }, pfSettlement());
+        } catch (err) {
+          problem = err.message;
+        }
+      }
+      if (problem) {
+        e.target.setAttribute('aria-invalid', 'true');
+        setPfStatus(problem + ' Il valore non è stato salvato.', 'warn');
+        return;
+      }
+      pos[field] = v;
+      if (field === 'cleanPrice') pos.example = false;
+      savePositions();
+      setPfStatus('', '');
+      // Si ridisegna dopo lo spostamento del fuoco, per non perderlo.
+      setTimeout(renderPortfolioKeepFocus, 0);
+    });
+    document.querySelectorAll('input[name="pf-measure"]').forEach((el) => el.addEventListener('change', renderPortfolio));
+    ['pf-n2', 'pf-n10', 'pf-n30'].forEach((id) => $(id).addEventListener('change', renderPortfolio));
+    renderPortfolio();
+  }
+
   // ------------------------------------------------------------- avvio
 
   function init() {
@@ -646,6 +1063,7 @@
     });
     updatePriceLink();
     loadCatalog().catch(() => { /* segnalato alla prima ricerca */ });
+    initPortfolio();
 
     $('preset').addEventListener('change', (e) => {
       $('isin').value = '';

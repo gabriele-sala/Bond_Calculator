@@ -144,6 +144,10 @@
     if (!p.maturity) errors.push('Inserisci una data di scadenza valida.');
     if (p.settlement && p.maturity && p.maturity <= p.settlement)
       errors.push('La scadenza deve essere successiva alla data di regolamento.');
+    if (p.settlement && p.settlement.getUTCFullYear() < 1900)
+      errors.push('La data di regolamento deve essere successiva al 1900.');
+    if (p.settlement && p.maturity && p.maturity > addYears(p.settlement, 100))
+      errors.push('La vita residua non può superare 100 anni.');
     if (![1, 2, 4, 12].includes(p.freq)) errors.push('Frequenza cedolare non supportata.');
     if (!DAY_COUNTS[p.dayCount]) errors.push('Convenzione di calcolo giorni non supportata.');
     if (!Number.isFinite(p.couponRate) || p.couponRate < 0)
@@ -171,7 +175,9 @@
     const next = dates[0];
 
     const E = dc.periodLength(prev, next, f);
-    const A = dc.days(prev, p.settlement);
+    // Con 30E/360 e scadenza a fine febbraio i giorni maturati possono superare
+    // la lunghezza convenzionale del periodo: il rateo non supera una cedola.
+    const A = Math.min(dc.days(prev, p.settlement), E);
     const DSC = p.dayCount.startsWith('30') ? E - A : actualDays(p.settlement, next);
 
     const coupon = (100 * p.couponRate) / f;
@@ -297,6 +303,12 @@
     return f * (Math.pow(1 + r, 1 / f) - 1);
   }
 
+  // Rendimento nominale dopo uno spostamento `d` del rendimento effettivo annuo.
+  function shiftEffective(y, f, d) {
+    const r = nominalToEffective(y, f) + d;
+    return r > -1 ? effectiveToNominal(r, f) : NaN;
+  }
+
   // ------------------------------------------------------------- rischio
 
   function risk(bond, y) {
@@ -401,6 +413,140 @@
     return { nominal: y, effective: nominalToEffective(y, bond.freq), flows };
   }
 
+  // ------------------------------------------- orizzonte e pareggio
+
+  /**
+   * Valore della posizione a una data futura: cedole incassate fino a quella
+   * data (comprese quelle pagate quel giorno, senza reinvestimento) più la
+   * vendita del titolo al rendimento nominale `yHorizon`. Se la data è la
+   * scadenza o oltre, il titolo è tenuto fino al rimborso.
+   * Il netto segue le regole di investorFlows: ritenuta sulle cedole (la prima
+   * solo per la parte maturata dopo l'acquisto), sul rateo maturato alla
+   * vendita e sulla plusvalenza sul prezzo secco al netto delle commissioni;
+   * bollo opzionale sul controvalore medio del periodo.
+   * opts: { nominal, cleanPrice, taxRate, commission, stampDuty }
+   * Restituisce importi in euro: { costGross, costNet, valueGross, valueNet }.
+   */
+  function horizonValue(bond, opts, horizonDate, yHorizon) {
+    const Q = opts.nominal / 100;
+    const tax = opts.taxRate || 0;
+    const commission = opts.commission || 0;
+    const clean0 = opts.cleanPrice;
+    const settle = bond.params.settlement;
+    const maturity = bond.params.maturity;
+    const costGross = Q * (clean0 + bond.accrued);
+    const costNet = costGross + commission;
+
+    let valueGross = 0;
+    let valueNet = 0;
+    let couponsReceived = 0;
+    bond.cashflows.forEach((cf, i) => {
+      if (cf.date > horizonDate) return;
+      const gross = Q * cf.coupon;
+      const taxable = i === 0 ? Math.max(0, gross - Q * bond.accrued) : gross;
+      valueGross += gross;
+      valueNet += gross - tax * taxable;
+      couponsReceived++;
+    });
+
+    let cleanEnd;
+    if (horizonDate >= maturity) {
+      const redemption = Q * bond.params.redemption;
+      cleanEnd = bond.params.redemption;
+      valueGross += redemption;
+      valueNet += redemption - tax * Math.max(0, redemption - (Q * clean0 + commission));
+    } else {
+      const later = createBond({ ...bond.params, settlement: horizonDate });
+      cleanEnd = cleanFromYield(later, yHorizon);
+      const accruedEnd = Q * later.accrued;
+      const proceeds = Q * cleanEnd + accruedEnd;
+      // Interessi maturati nel periodo cedolare in corso, dopo l'acquisto.
+      const accruedIncome = couponsReceived ? accruedEnd : accruedEnd - Q * bond.accrued;
+      const gain = Q * cleanEnd - (Q * clean0 + commission);
+      valueGross += proceeds;
+      valueNet += proceeds - tax * Math.max(0, accruedIncome) - tax * Math.max(0, gain);
+    }
+
+    if (opts.stampDuty) {
+      const end = horizonDate < maturity ? horizonDate : maturity;
+      const years = actualDays(settle, end) / 365;
+      valueNet -= 0.002 * Q * ((clean0 + cleanEnd) / 2) * years;
+    }
+    return { costGross, costNet, valueGross, valueNet };
+  }
+
+  // Ricerca per bisezione della radice di una funzione decrescente.
+  function bisectDecreasing(fn, lo, hi, tol) {
+    let flo = fn(lo), fhi = fn(hi);
+    if (flo < 0) return -Infinity;
+    if (fhi > 0) return Infinity;
+    for (let i = 0; i < 200 && hi - lo > tol; i++) {
+      const mid = (lo + hi) / 2;
+      if (fn(mid) >= 0) lo = mid;
+      else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  /**
+   * Rialzo di pareggio: di quanto può salire il rendimento del titolo entro
+   * `years` anni perché cedole incassate e vendita restituiscano almeno quanto
+   * speso. In decimale (0,004 = +40 pb), lordo e netto; null se l'orizzonte
+   * arriva alla scadenza o oltre.
+   */
+  function breakEvenShift(bond, opts, y0, years) {
+    const horizon = addYears(bond.params.settlement, years);
+    if (horizon >= bond.params.maturity) return null;
+    const lo = Math.max(-0.5, -bond.freq * 0.99 - y0);
+    const hi = 1;
+    const at = (d) => horizonValue(bond, opts, horizon, y0 + d);
+    return {
+      horizon,
+      gross: bisectDecreasing((d) => { const v = at(d); return v.valueGross - v.costGross; }, lo, hi, 1e-9),
+      net: bisectDecreasing((d) => { const v = at(d); return v.valueNet - v.costNet; }, lo, hi, 1e-9),
+    };
+  }
+
+  /**
+   * Tempo di recupero: se il rendimento del titolo sale subito di `shift`
+   * (decimale) e resta lì, primo giorno in cui cedole incassate e prezzo di
+   * vendita tornano a quanto speso. Restituisce { gross, net } con la data e
+   * la durata in anni, oppure null se non succede entro la scadenza.
+   */
+  function recoveryTime(bond, opts, y0, shift) {
+    const y = y0 + shift;
+    const settle = bond.params.settlement;
+    const maturity = bond.params.maturity;
+    const find = (key) => {
+      const ok = (date) => {
+        const v = horizonValue(bond, opts, date, y);
+        return key === 'gross' ? v.valueGross >= v.costGross - 1e-9 : v.valueNet >= v.costNet - 1e-9;
+      };
+      if (ok(settle)) return { date: settle, years: 0 };
+      // Il valore cresce nel tempo ma non in modo strettamente monotono: piccoli
+      // cali alle date cedola (ACT/360, ACT/365) e a fine mese (30/360 con bollo).
+      // Si avanza a passi mensili fino al primo mese in pari, poi si controllano
+      // uno per uno i giorni degli ultimi due mesi.
+      const samples = [settle];
+      for (let m = 1; ; m++) {
+        let date = addMonths(settle, m, false);
+        if (date > maturity) date = maturity;
+        samples.push(date);
+        if (ok(date)) {
+          const from = samples[Math.max(0, samples.length - 3)];
+          const days = actualDays(from, date);
+          for (let k = 1; k <= days; k++) {
+            const day = new Date(from.getTime() + k * MS_DAY);
+            if (ok(day)) return { date: day, years: actualDays(settle, day) / 365.25 };
+          }
+          return { date, years: actualDays(settle, date) / 365.25 };
+        }
+        if (date >= maturity) return null;
+      }
+    };
+    return { gross: find('gross'), net: find('net') };
+  }
+
   // ----------------------------------------------------------- analisi
 
   /**
@@ -470,10 +616,11 @@
   }
 
   // Scenari di variazione del rendimento: prezzo esatto vs. stime.
-  function scenarios(bond, y, shiftsBp) {
+  // Con effective = true gli spostamenti sono sul rendimento effettivo annuo.
+  function scenarios(bond, y, shiftsBp, effective) {
     const r = risk(bond, y);
     return shiftsBp.map((bp) => {
-      const dy = bp / 10000;
+      const dy = effective ? shiftEffective(y, bond.freq, bp / 10000) - y : bp / 10000;
       const dirty = dirtyFromYield(bond, y + dy);
       const durEst = r.dirty * (1 - r.modified * dy);
       const convEst = r.dirty * (1 - r.modified * dy + 0.5 * r.convexity * dy * dy);
@@ -506,10 +653,15 @@
     yieldFromClean,
     nominalToEffective,
     effectiveToNominal,
+    shiftEffective,
     risk,
     investorFlows,
     investorYield,
     analyze,
     scenarios,
+    addYears,
+    horizonValue,
+    breakEvenShift,
+    recoveryTime,
   };
 });

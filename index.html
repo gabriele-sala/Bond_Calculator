@@ -200,7 +200,7 @@
             <span class="sub" id="r-ytm">–</span>
           </div>
           <div class="figure">
-            <span class="label">Rendimento netto</span>
+            <span class="label">Rendimento netto stimato</span>
             <span class="value" id="r-net">–</span>
             <span class="sub" id="r-net-sub">–</span>
           </div>
@@ -222,22 +222,19 @@
             <span class="hint">Rendimento effettivo annuo</span>
           </div>
           <div class="waterfall" id="waterfall"></div>
-        </div>
-
-        <div class="panel">
-          <h2>Dettaglio</h2>
-          <div class="fact-groups" id="facts"></div>
+          <p class="estimate-note" id="netto-nota"><strong>È una stima.</strong> Vale per il regime amministrato, con il titolo comprato oggi a questo prezzo e tenuto fino alla scadenza. Il rendimento davvero ottenuto può essere diverso se sei in regime dichiarativo o gestito, se il tuo prezzo di carico è diverso, se puoi compensare minusvalenze o plusvalenze, o se il titolo è stato emesso sotto la pari (disaggio di emissione).</p>
         </div>
 
         <div class="panel">
           <div class="panel-head">
-            <h2>Prezzo e rendimento</h2>
-            <ul class="legend">
-              <li><span class="key key-curve"></span>Prezzo secco effettivo</li>
-              <li><span class="key key-dur"></span>Stima con la duration</li>
-            </ul>
+            <h2>Se i rendimenti cambiano</h2>
           </div>
-          <p class="hint">La distanza fra le due linee è la convessità: a grandi variazioni di rendimento la duration da sola sbaglia il prezzo.</p>
+          <div class="impacts" id="impacts"></div>
+          <p class="hint">Variazione immediata del prezzo tel quel se il rendimento effettivo annuo del titolo sale o scende dei punti base (pb) indicati. Nel grafico, la distanza fra le due linee è la convessità: a grandi variazioni di rendimento la duration da sola sbaglia il prezzo.</p>
+          <ul class="legend">
+            <li><span class="key key-curve"></span>Prezzo secco effettivo</li>
+            <li><span class="key key-dur"></span>Stima con la duration</li>
+          </ul>
           <div class="chart" id="chart"></div>
           <div class="scroll">
             <table class="data" id="scenarios">
@@ -248,6 +245,28 @@
               <tbody></tbody>
             </table>
           </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Quanto rialzo puoi reggere</h2>
+            <span class="hint">Cedole incassate senza reinvestirle</span>
+          </div>
+          <div class="breakeven" id="breakeven"></div>
+          <div class="scroll">
+            <table class="data" id="recovery">
+              <caption>Tempo di recupero se il rendimento sale subito e resta a quel livello</caption>
+              <thead>
+                <tr><th scope="col">Rialzo</th><th scope="col">Perdita immediata</th><th scope="col">Recupero lordo</th><th scope="col">Recupero netto stimato</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Dettaglio</h2>
+          <div class="fact-groups" id="facts"></div>
         </div>
 
         <div class="panel">
@@ -278,6 +297,75 @@
     <a href="#output" class="dock-link">Risultati</a>
   </div>
 
+  <section class="panel portfolio" id="portafoglio" aria-labelledby="pf-title">
+    <div class="panel-head">
+      <div class="pf-intro">
+        <h2 id="pf-title">Confronto e portafoglio</h2>
+        <p class="hint">Più titoli insieme, con la data di regolamento del calcolatore. Carica un titolo qui sopra (per ISIN o a mano), inserisci prezzo e nominale, poi aggiungilo.</p>
+      </div>
+      <div class="pf-actions">
+        <button type="button" class="btn" id="pf-add">Aggiungi il titolo del calcolatore</button>
+        <button type="button" class="btn btn-quiet" id="pf-example">Carica un esempio</button>
+        <button type="button" class="btn btn-quiet" id="pf-clear" hidden>Svuota</button>
+      </div>
+    </div>
+    <p class="isin-status" id="pf-status" role="status"></p>
+
+    <div class="pf-empty" id="pf-empty">
+      <p><strong>Nessun titolo nel confronto.</strong> Aggiungi il titolo del calcolatore, oppure carica un esempio con quattro BTP a scadenze diverse.</p>
+    </div>
+
+    <div class="pf-body" id="pf-body" hidden>
+      <p class="pf-none" id="pf-none" hidden>Nessun titolo analizzabile alla data di regolamento scelta. Controlla la data nel calcolatore o rimuovi i titoli scaduti.</p>
+      <div class="pf-kpis" id="pf-kpis"></div>
+
+      <p class="hint" id="pf-table-hint">Nominale e prezzo si possono modificare direttamente nella tabella.</p>
+      <div class="scroll">
+        <table class="data pf-table" id="pf-table" aria-describedby="pf-table-hint">
+          <caption class="sr-only">Confronto fra i titoli</caption>
+          <thead>
+            <tr><th scope="col">Titolo</th><th scope="col">Nominale €</th><th scope="col">Prezzo secco</th><th scope="col">Rend. lordo</th><th scope="col">Netto stimato</th><th scope="col">Duration mod.</th><th scope="col">DV01 €</th><th scope="col">Pareggio 1 anno</th><th scope="col"><span class="sr-only">Azioni</span></th></tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+
+      <div class="pf-analysis" id="pf-analysis">
+      <div class="pf-scen-head">
+        <h3>Scenari dei tassi</h3>
+        <div class="segmented seg-small" role="radiogroup" aria-label="Misura degli scenari">
+          <input type="radio" name="pf-measure" id="pf-m-now" value="now" checked><label for="pf-m-now">Effetto immediato</label>
+          <input type="radio" name="pf-measure" id="pf-m-1y" value="1y"><label for="pf-m-1y">Rendimento a 1 anno</label>
+        </div>
+      </div>
+      <p class="hint" id="pf-scen-note"></p>
+      <div class="pf-custom" role="group" aria-labelledby="pf-custom-label">
+        <span class="pf-custom-label" id="pf-custom-label">Curva personalizzata, spostamenti in punti base:</span>
+        <label for="pf-n2">2 anni <input id="pf-n2" type="text" inputmode="decimal" autocomplete="off" value="0"></label>
+        <label for="pf-n10">10 anni <input id="pf-n10" type="text" inputmode="decimal" autocomplete="off" value="0"></label>
+        <label for="pf-n30">30 anni <input id="pf-n30" type="text" inputmode="decimal" autocomplete="off" value="0"></label>
+      </div>
+      <div class="scroll">
+        <table class="data pf-scen" id="pf-scen"></table>
+      </div>
+
+      <h3>Incassi per anno</h3>
+      <div class="scroll tall">
+        <table class="data" id="pf-cal">
+          <caption class="sr-only">Incassi per anno</caption>
+          <thead>
+            <tr><th scope="col">Anno</th><th scope="col">Cedole lorde</th><th scope="col">Cedole nette</th><th scope="col">Rimborsi netti</th><th scope="col">Totale netto</th></tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+      <p class="hint">Stime con la tassazione di ogni titolo, senza commissioni né bollo. I rimborsi netti tolgono l'imposta sulla plusvalenza. Nel portafoglio il rendimento è il tasso interno dei flussi complessivi; duration e convessità sono pesate per il controvalore.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="method panel">
     <h2>Come calcola</h2>
     <div class="method-grid">
@@ -290,7 +378,7 @@
         <p>Le date cedola sono ricavate a ritroso dalla scadenza, con la regola di fine mese. Il rateo è <span class="mono">cedola/f × A/E</span>, con giorni maturati e lunghezza del periodo secondo la convenzione scelta. I titoli di Stato italiani usano ACT/ACT. Si assume un primo periodo cedolare regolare.</p>
       </div>
       <div>
-        <h3>Rendimento netto</h3>
+        <h3>Rendimento netto stimato</h3>
         <p>Stima per il regime amministrato. La ritenuta colpisce le cedole; sulla prima cedola solo la parte maturata dopo l'acquisto, perché il rateo pagato al venditore viene scomputato. A scadenza si tassa la plusvalenza fra rimborso e prezzo secco più commissioni. Le minusvalenze non danno credito d'imposta. Non considera il disaggio di emissione.</p>
       </div>
       <div>
@@ -306,6 +394,7 @@
 <script src="js/config.js"></script>
 <script src="js/bond.js"></script>
 <script src="js/isin.js"></script>
+<script src="js/portfolio.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
