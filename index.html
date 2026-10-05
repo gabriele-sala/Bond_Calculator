@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calcolatore Rendimento Obbligazioni</title>
+<meta name="description" content="Calcola rendimento a scadenza, prezzo tel quel, rateo, duration, convessità e rendimento netto di un'obbligazione.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <p class="eyebrow">Reddito fisso · prezzi per 100 di nominale</p>
+    <h1>Calcolatore <em>Rendimento</em> Obbligazioni</h1>
+    <p class="lede">Rendimento a scadenza, rateo, prezzo tel quel, duration e rendimento netto per il risparmiatore italiano. Convenzioni ICMA, risultati allineati alle funzioni <span class="mono">PRICE</span> e <span class="mono">YIELD</span> di Excel.</p>
+  </header>
+
+  <main class="layout">
+    <form id="bond-form" class="panel inputs" novalidate>
+      <div class="field">
+        <label for="preset">Carica un esempio</label>
+        <select id="preset">
+          <option value="">Scegli un esempio…</option>
+          <option value="btp">BTP decennale, cedola semestrale</option>
+          <option value="corp">Corporate USD, 30/360 semestrale</option>
+          <option value="zero">Zero coupon a 2 anni</option>
+          <option value="call">Obbligazione callable</option>
+        </select>
+      </div>
+
+      <fieldset>
+        <legend>Titolo</legend>
+        <div class="grid2">
+          <div class="field">
+            <label for="settlement">Data di regolamento</label>
+            <input id="settlement" type="date" required>
+          </div>
+          <div class="field">
+            <label for="maturity">Scadenza</label>
+            <input id="maturity" type="date" required>
+          </div>
+          <div class="field">
+            <label for="coupon">Cedola annua lorda</label>
+            <div class="affix"><input id="coupon" type="text" inputmode="decimal" autocomplete="off"><span>%</span></div>
+          </div>
+          <div class="field">
+            <label for="freq">Pagamento cedola</label>
+            <select id="freq">
+              <option value="1">Annuale</option>
+              <option value="2">Semestrale</option>
+              <option value="4">Trimestrale</option>
+              <option value="12">Mensile</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="daycount">Calcolo giorni</label>
+            <select id="daycount">
+              <option value="ACT/ACT">ACT/ACT (ICMA)</option>
+              <option value="30/360">30/360 US</option>
+              <option value="30E/360">30E/360</option>
+              <option value="ACT/360">ACT/360</option>
+              <option value="ACT/365">ACT/365 Fixed</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="redemption">Prezzo di rimborso</label>
+            <input id="redemption" type="text" inputmode="decimal" autocomplete="off">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Cosa conosci</legend>
+        <div class="segmented" role="radiogroup" aria-label="Dato di partenza">
+          <input type="radio" name="mode" id="mode-price" value="price" checked>
+          <label for="mode-price">Il prezzo</label>
+          <input type="radio" name="mode" id="mode-yield" value="yield">
+          <label for="mode-yield">Il rendimento</label>
+        </div>
+        <div class="field" id="price-field">
+          <label for="price">Prezzo secco (corso)</label>
+          <input id="price" type="text" inputmode="decimal" autocomplete="off">
+        </div>
+        <div class="grid2" id="yield-field" hidden>
+          <div class="field">
+            <label for="yield">Rendimento</label>
+            <div class="affix"><input id="yield" type="text" inputmode="decimal" autocomplete="off"><span>%</span></div>
+          </div>
+          <div class="field">
+            <label for="yieldbasis">Espresso come</label>
+            <select id="yieldbasis">
+              <option value="eff">Effettivo annuo</option>
+              <option value="nom">Nominale (conv. cedolare)</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Il tuo investimento</legend>
+        <div class="grid2">
+          <div class="field">
+            <label for="nominal">Valore nominale</label>
+            <div class="affix"><input id="nominal" type="text" inputmode="decimal" autocomplete="off"><span>€</span></div>
+          </div>
+          <div class="field">
+            <label for="commission">Commissioni d'acquisto</label>
+            <div class="affix"><input id="commission" type="text" inputmode="decimal" autocomplete="off"><span>€</span></div>
+          </div>
+          <div class="field span2">
+            <label for="tax">Tassazione</label>
+            <select id="tax">
+              <option value="0.125">12,5% · titoli di Stato e white list</option>
+              <option value="0.26">26% · altre obbligazioni</option>
+              <option value="0">Nessuna (lordo)</option>
+              <option value="custom">Altra aliquota</option>
+            </select>
+          </div>
+          <div class="field" id="taxcustom-field" hidden>
+            <label for="taxcustom">Aliquota</label>
+            <div class="affix"><input id="taxcustom" type="text" inputmode="decimal" autocomplete="off"><span>%</span></div>
+          </div>
+        </div>
+        <label class="check" for="stamp"><input id="stamp" type="checkbox"> Includi imposta di bollo (0,20% annuo)</label>
+      </fieldset>
+
+      <details id="call-details">
+        <summary>Rimborso anticipato (call)</summary>
+        <div class="grid2">
+          <div class="field">
+            <label for="calldate">Data di call</label>
+            <input id="calldate" type="date">
+          </div>
+          <div class="field">
+            <label for="callprice">Prezzo di call</label>
+            <input id="callprice" type="text" inputmode="decimal" autocomplete="off">
+          </div>
+        </div>
+      </details>
+    </form>
+
+    <section class="results" aria-live="polite">
+      <div id="error" class="error" role="alert" hidden></div>
+
+      <div id="output">
+        <div class="headline">
+          <div class="figure primary">
+            <span class="label">Rendimento effettivo annuo lordo</span>
+            <span class="value" id="r-eff">–</span>
+            <span class="sub" id="r-ytm">–</span>
+          </div>
+          <div class="figure">
+            <span class="label">Rendimento netto</span>
+            <span class="value" id="r-net">–</span>
+            <span class="sub" id="r-net-sub">–</span>
+          </div>
+          <div class="figure">
+            <span class="label">Prezzo tel quel</span>
+            <span class="value" id="r-dirty">–</span>
+            <span class="sub" id="r-dirty-sub">–</span>
+          </div>
+          <div class="figure">
+            <span class="label">Duration modificata</span>
+            <span class="value" id="r-mod">–</span>
+            <span class="sub" id="r-mod-sub">–</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Dettaglio</h2>
+          <dl class="facts" id="facts"></dl>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Prezzo e rendimento</h2>
+            <ul class="legend">
+              <li><span class="key key-curve"></span>Prezzo secco effettivo</li>
+              <li><span class="key key-dur"></span>Stima con la duration</li>
+            </ul>
+          </div>
+          <p class="hint">La distanza fra le due linee è la convessità: a grandi variazioni di rendimento la duration da sola sbaglia il prezzo.</p>
+          <div class="chart" id="chart"></div>
+          <div class="scroll">
+            <table class="data" id="scenarios">
+              <caption>Scenari di variazione del rendimento</caption>
+              <thead>
+                <tr><th scope="col">Variazione</th><th scope="col">Rend. eff.</th><th scope="col">Prezzo secco</th><th scope="col">Var. tel quel</th><th scope="col">Stima duration</th><th scope="col">Duration + convessità</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Flussi di cassa</h2>
+            <span class="hint" id="cf-note"></span>
+          </div>
+          <div class="scroll tall">
+            <table class="data coupons" id="cashflows">
+              <thead>
+                <tr><th scope="col">Cedola</th><th scope="col">Data</th><th scope="col">Cedola lorda</th><th scope="col">Rimborso</th><th scope="col">Imposte</th><th scope="col">Netto incassato</th><th scope="col">Valore attuale</th></tr>
+              </thead>
+              <tbody></tbody>
+              <tfoot></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="method panel">
+    <h2>Come calcola</h2>
+    <div class="method-grid">
+      <div>
+        <h3>Rendimento a scadenza</h3>
+        <p>Il prezzo tel quel è il valore attuale di cedole e rimborso, scontati al tasso <span class="mono">y</span> con capitalizzazione alla frequenza della cedola. L'esponente di ogni flusso è <span class="mono">DSC/E + k − 1</span>, come nelle funzioni Excel e nella convenzione ICMA. Il rendimento effettivo annuo è <span class="mono">(1 + y/f)<sup>f</sup> − 1</span>, la grandezza pubblicata da Borsa Italiana e dal MEF.</p>
+      </div>
+      <div>
+        <h3>Rateo e calendario</h3>
+        <p>Le date cedola sono ricavate a ritroso dalla scadenza, con la regola di fine mese. Il rateo è <span class="mono">cedola/f × A/E</span>, con giorni maturati e lunghezza del periodo secondo la convenzione scelta. I titoli di Stato italiani usano ACT/ACT. Si assume un primo periodo cedolare regolare.</p>
+      </div>
+      <div>
+        <h3>Rendimento netto</h3>
+        <p>Stima per il regime amministrato. La ritenuta colpisce le cedole; sulla prima cedola solo la parte maturata dopo l'acquisto, perché il rateo pagato al venditore viene scomputato. A scadenza si tassa la plusvalenza fra rimborso e prezzo secco più commissioni. Le minusvalenze non danno credito d'imposta. Non considera il disaggio di emissione.</p>
+      </div>
+      <div>
+        <h3>Rischio</h3>
+        <p>Duration di Macaulay e modificata, convessità e DV01 sono calcolate in forma chiusa sui flussi. Il DV01 indica di quanto scende il prezzo tel quel, per 100 di nominale, se il rendimento sale di un punto base.</p>
+      </div>
+    </div>
+    <p class="disclaimer">Strumento di calcolo a scopo informativo. Non è una consulenza finanziaria. Verifica sempre i dati del prospetto del titolo.</p>
+  </section>
+</div>
+
+<script src="js/bond.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

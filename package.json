@@ -1,0 +1,11 @@
+{
+  "name": "bond-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Calcolatore di rendimento delle obbligazioni: YTM, rateo, duration, convessità e rendimento netto.",
+  "scripts": {
+    "test": "node --test",
+    "start": "python3 -m http.server 8000"
+  },
+  "license": "MIT"
+}
