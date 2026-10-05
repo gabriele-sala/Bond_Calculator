@@ -12,6 +12,10 @@ Sito statico (HTML, CSS e JavaScript, nessuna dipendenza) per calcolare con prec
 - **Duration** di Macaulay e modificata, **convessità**, **DV01**
 - Curva prezzo-rendimento, scenari di variazione dei tassi e tabella completa dei flussi di cassa
 
+## Aspetto
+
+In alto a destra si sceglie il **tema** (automatico, chiaro o scuro) e il **colore** fra quattro palette: Verde, Blu, Ambra e Grafite. La scelta resta salvata nel browser. Ogni palette ha i suoi colori per il tema chiaro e per quello scuro, con contrasti del testo conformi a WCAG AA e colori del grafico distinguibili anche da chi ha difficoltà con i colori.
+
 ## Ricerca per ISIN
 
 In cima al modulo si può cercare un titolo di Stato italiano per ISIN: cedola, frequenza, scadenza e tassazione si compilano da soli e restano modificabili. Il link "Vedi prezzo su Borsa Italiana" apre la scheda del titolo, da cui copiare il prezzo.
