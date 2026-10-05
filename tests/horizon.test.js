@@ -103,3 +103,54 @@ test('tempo di recupero: impossibile prima della scadenza', () => {
   const yc = B.yieldFromClean(zero, 110);
   assert.equal(B.recoveryTime(zero, caro, yc, 0.01).gross, null);
 });
+
+test('tempo di recupero: 30/360 con bollo trova il 31 del mese (regressione)', () => {
+  const b = B.createBond({ settlement: d('2026-10-07'), maturity: d('2032-11-15'), couponRate: 0.0525, freq: 2, redemption: 100, dayCount: '30/360' });
+  const opts = { nominal: 10000, cleanPrice: 99.03, taxRate: 0.26, commission: 20, stampDuty: true };
+  const y = B.yieldFromClean(b, 99.03);
+  assert.equal(B.toISO(B.recoveryTime(b, opts, y, 0.005).net.date), '2027-05-31');
+});
+
+test('tempo di recupero: uguale alla ricerca giorno per giorno in tutte le convenzioni', () => {
+  const firstDay = (b, opts, y, key) => {
+    for (let day = b.params.settlement; day <= b.params.maturity; day = new Date(day.getTime() + 86400000)) {
+      const v = B.horizonValue(b, opts, day, y);
+      if (key === 'gross' ? v.valueGross >= v.costGross - 1e-9 : v.valueNet >= v.costNet - 1e-9) return B.toISO(day);
+    }
+    return null;
+  };
+  for (const dayCount of ['ACT/ACT', '30/360', '30E/360', 'ACT/360', 'ACT/365']) {
+    for (const [price, shift] of [[98.4, 0.005], [101.7, 0.01], [96.2, 0.02]]) {
+      const b = B.createBond({ settlement: d('2026-10-07'), maturity: d('2030-03-15'), couponRate: 0.04, freq: 2, redemption: 100, dayCount });
+      const opts = { nominal: 10000, cleanPrice: price, taxRate: 0.125, commission: 5, stampDuty: true };
+      const y0 = B.yieldFromClean(b, price);
+      const r = B.recoveryTime(b, opts, y0, shift);
+      for (const key of ['gross', 'net']) {
+        assert.equal(r[key] ? B.toISO(r[key].date) : null, firstDay(b, opts, y0 + shift, key), `${dayCount} ${price} +${shift * 1e4} ${key}`);
+      }
+    }
+  }
+});
+
+test('30E/360 con scadenza a fine febbraio: rateo non oltre la cedola e pareggio definito', () => {
+  const b = B.createBond({ settlement: d('2026-08-30'), maturity: d('2031-02-28'), couponRate: 0.04, freq: 2, redemption: 100, dayCount: '30E/360' });
+  assert.ok(b.accrued <= 2 + 1e-12 && b.DSC >= 0);
+  const opts = { nominal: 10000, cleanPrice: 100, taxRate: 0.125 };
+  const y = B.yieldFromClean(b, 100);
+  const v = B.horizonValue(b, opts, b.params.settlement, y);
+  close(v.valueNet, v.costNet, 1e-6);
+  const be = B.breakEvenShift(b, opts, y, 1);
+  assert.ok(Number.isFinite(be.gross) && be.gross > 0 && Number.isFinite(be.net) && be.net > 0);
+});
+
+test('spostamenti sul rendimento effettivo: +100 pb portano il rendimento effettivo esattamente +1%', () => {
+  const y = B.yieldFromClean(btp, 101.35);
+  const s = B.scenarios(btp, y, [100], true)[0];
+  close(B.nominalToEffective(s.yield, 2) - B.nominalToEffective(y, 2), 0.01, 1e-12);
+});
+
+test('date non plausibili rifiutate', () => {
+  const base = { maturity: d('2035-02-01'), couponRate: 0.04, freq: 2, redemption: 100, dayCount: 'ACT/ACT' };
+  assert.throws(() => B.createBond({ ...base, settlement: d('0202-10-07') }), /1900/);
+  assert.throws(() => B.createBond({ ...base, settlement: d('2026-10-07'), maturity: d('2199-01-01') }), /100 anni/);
+});

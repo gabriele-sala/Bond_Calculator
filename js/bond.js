@@ -144,6 +144,10 @@
     if (!p.maturity) errors.push('Inserisci una data di scadenza valida.');
     if (p.settlement && p.maturity && p.maturity <= p.settlement)
       errors.push('La scadenza deve essere successiva alla data di regolamento.');
+    if (p.settlement && p.settlement.getUTCFullYear() < 1900)
+      errors.push('La data di regolamento deve essere successiva al 1900.');
+    if (p.settlement && p.maturity && p.maturity > addYears(p.settlement, 100))
+      errors.push('La vita residua non può superare 100 anni.');
     if (![1, 2, 4, 12].includes(p.freq)) errors.push('Frequenza cedolare non supportata.');
     if (!DAY_COUNTS[p.dayCount]) errors.push('Convenzione di calcolo giorni non supportata.');
     if (!Number.isFinite(p.couponRate) || p.couponRate < 0)
@@ -171,7 +175,9 @@
     const next = dates[0];
 
     const E = dc.periodLength(prev, next, f);
-    const A = dc.days(prev, p.settlement);
+    // Con 30E/360 e scadenza a fine febbraio i giorni maturati possono superare
+    // la lunghezza convenzionale del periodo: il rateo non supera una cedola.
+    const A = Math.min(dc.days(prev, p.settlement), E);
     const DSC = p.dayCount.startsWith('30') ? E - A : actualDays(p.settlement, next);
 
     const coupon = (100 * p.couponRate) / f;
@@ -295,6 +301,12 @@
 
   function effectiveToNominal(r, f) {
     return f * (Math.pow(1 + r, 1 / f) - 1);
+  }
+
+  // Rendimento nominale dopo uno spostamento `d` del rendimento effettivo annuo.
+  function shiftEffective(y, f, d) {
+    const r = nominalToEffective(y, f) + d;
+    return r > -1 ? effectiveToNominal(r, f) : NaN;
   }
 
   // ------------------------------------------------------------- rischio
@@ -511,23 +523,25 @@
         return key === 'gross' ? v.valueGross >= v.costGross - 1e-9 : v.valueNet >= v.costNet - 1e-9;
       };
       if (ok(settle)) return { date: settle, years: 0 };
-      // Prima un passo mensile, poi bisezione sui giorni.
-      let prev = settle;
+      // Il valore cresce nel tempo ma non in modo strettamente monotono: piccoli
+      // cali alle date cedola (ACT/360, ACT/365) e a fine mese (30/360 con bollo).
+      // Si avanza a passi mensili fino al primo mese in pari, poi si controllano
+      // uno per uno i giorni degli ultimi due mesi.
+      const samples = [settle];
       for (let m = 1; ; m++) {
         let date = addMonths(settle, m, false);
         if (date > maturity) date = maturity;
+        samples.push(date);
         if (ok(date)) {
-          let lo = 0, hi = actualDays(prev, date);
-          while (hi - lo > 1) {
-            const mid = Math.floor((lo + hi) / 2);
-            if (ok(new Date(prev.getTime() + mid * MS_DAY))) hi = mid;
-            else lo = mid;
+          const from = samples[Math.max(0, samples.length - 3)];
+          const days = actualDays(from, date);
+          for (let k = 1; k <= days; k++) {
+            const day = new Date(from.getTime() + k * MS_DAY);
+            if (ok(day)) return { date: day, years: actualDays(settle, day) / 365.25 };
           }
-          const hit = new Date(prev.getTime() + hi * MS_DAY);
-          return { date: hit, years: actualDays(settle, hit) / 365.25 };
+          return { date, years: actualDays(settle, date) / 365.25 };
         }
         if (date >= maturity) return null;
-        prev = date;
       }
     };
     return { gross: find('gross'), net: find('net') };
@@ -602,10 +616,11 @@
   }
 
   // Scenari di variazione del rendimento: prezzo esatto vs. stime.
-  function scenarios(bond, y, shiftsBp) {
+  // Con effective = true gli spostamenti sono sul rendimento effettivo annuo.
+  function scenarios(bond, y, shiftsBp, effective) {
     const r = risk(bond, y);
     return shiftsBp.map((bp) => {
-      const dy = bp / 10000;
+      const dy = effective ? shiftEffective(y, bond.freq, bp / 10000) - y : bp / 10000;
       const dirty = dirtyFromYield(bond, y + dy);
       const durEst = r.dirty * (1 - r.modified * dy);
       const convEst = r.dirty * (1 - r.modified * dy + 0.5 * r.convexity * dy * dy);
@@ -638,6 +653,7 @@
     yieldFromClean,
     nominalToEffective,
     effectiveToNominal,
+    shiftEffective,
     risk,
     investorFlows,
     investorYield,

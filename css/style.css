@@ -244,6 +244,9 @@ body {
   position: absolute;
   width: 1px;
   height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
@@ -376,6 +379,7 @@ h3 { margin: 0 0 6px; font-size: var(--step-0); font-weight: 600; }
   border-radius: var(--radius);
   padding: 20px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   min-width: 0;
 }
@@ -682,7 +686,7 @@ summary { cursor: pointer; font-weight: 500; }
 
 /* ---------------------------------------------------------------- tabelle */
 
-.scroll { overflow-x: auto; min-width: 0; }
+.scroll { overflow-x: auto; min-width: 0; position: relative; }
 .scroll.tall { max-height: 460px; overflow-y: auto; }
 
 table.data { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
@@ -739,6 +743,88 @@ table.coupons tr.redeem td:first-child { font-style: italic; }
 .dock-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 @media (min-width: 921px) { .dock { display: none !important; } }
 @media (max-width: 920px) { .page { padding-block-end: 96px; } }
+
+/* ------------------------------------------------- confronto e portafoglio */
+
+.btn {
+  font: inherit;
+  font-weight: 500;
+  padding: 0 16px;
+  min-height: 40px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+}
+.btn-quiet { background: transparent; color: var(--accent); }
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.btn:disabled { opacity: 0.6; cursor: progress; }
+.btn-small { min-height: 30px; padding: 0 10px; font-size: var(--step--1); }
+
+.portfolio { gap: 16px; }
+.pf-intro { display: grid; gap: 4px; max-width: 70ch; }
+.pf-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf-empty { padding: 20px; border: 1px dashed var(--line); border-radius: var(--radius); color: var(--muted); }
+.pf-empty p { margin: 0; }
+.pf-empty strong { color: var(--ink); }
+.pf-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
+.pf-body h3 { font-family: var(--font-display); font-weight: 400; font-size: var(--step-1); margin: 8px 0 0; }
+
+.pf-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 12px;
+}
+.pf-kpi {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+.pf-kpi .label { font-size: var(--step--1); color: var(--muted); }
+.pf-kpi .value { font-family: var(--font-display); font-size: var(--step-2); line-height: 1.1; font-variant-numeric: tabular-nums lining-nums; }
+.pf-kpi .sub { font-size: 0.75rem; color: var(--muted); }
+
+.pf-table td:first-child { white-space: normal; min-width: 180px; }
+.pf-table .pf-name { display: block; font-family: var(--font-body); font-weight: 500; }
+.pf-table .pf-meta { display: block; font-size: 0.75rem; color: var(--muted); }
+.pf-table input {
+  width: 7.5em;
+  min-height: 32px;
+  padding: 4px 8px;
+  text-align: right;
+  font-size: 0.875rem;
+}
+.pf-table .pf-row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.chip {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.6875rem;
+  color: var(--muted);
+  vertical-align: middle;
+}
+.pf-error td { color: var(--danger); }
+
+.pf-scen-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.seg-small { grid-template-columns: auto auto; }
+/* Fuoco visibile anche dentro i selettori con angoli ritagliati. */
+.segmented input:focus-visible + label { outline: 2px solid var(--ink); outline-offset: -4px; }
+.pf-none { margin: 0; padding: 14px 16px; border: 1px dashed var(--line); border-radius: var(--radius); color: var(--muted); }
+.seg-small label { padding: 6px 12px; font-size: var(--step--1); }
+.pf-custom { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: var(--step--1); color: var(--muted); }
+.pf-custom label { display: flex; align-items: center; gap: 6px; }
+.pf-custom input { width: 5em; min-height: 32px; padding: 4px 8px; text-align: right; }
+.pf-scen td:first-child { font-family: var(--font-body); font-size: var(--step--1); }
+.pf-scen td small { display: block; font-size: 0.6875rem; color: var(--muted); }
+.pf-scen td.best { background: var(--accent-soft); font-weight: 600; }
+.pf-scen tr.total td { font-weight: 600; border-top: 2px solid var(--ink); }
 
 /* ---------------------------------------------------------------- metodo */
 

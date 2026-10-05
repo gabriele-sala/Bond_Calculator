@@ -11,6 +11,10 @@ Sito statico (HTML, CSS e JavaScript, nessuna dipendenza) per calcolare con prec
 - **Yield to call** e **yield to worst** per i titoli richiamabili
 - **Duration** di Macaulay e modificata, **convessità**, **DV01**
 - Curva prezzo-rendimento, scenari di variazione dei tassi e tabella completa dei flussi di cassa
+- **Rialzo di pareggio** a 1 e 3 anni (quanto può salire il rendimento perché cedole e prezzo di vendita restituiscano quanto speso) e **tempo di recupero** dopo un rialzo improvviso, lordi e netti
+- **Confronto e portafoglio**: più titoli insieme con rendimento interno dei flussi complessivi, duration e convessità pesate, DV01 totale, pareggio, incassi netti per anno e scenari paralleli o di curva (irripidimento, appiattimento, curva personalizzata), come effetto immediato o rendimento a 1 anno
+
+Gli spostamenti in punti base si riferiscono sempre al rendimento effettivo annuo, la stessa grandezza mostrata in testata.
 
 ## Aspetto
 
@@ -64,5 +68,6 @@ Il workflow `.github/workflows/pages.yml` esegue i test e pubblica il sito su Gi
 - Si assume un calendario cedolare regolare (niente primo o ultimo periodo irregolare).
 - Il rendimento netto è una stima per il regime amministrato e non considera il disaggio di emissione né la compensazione delle minusvalenze.
 - La yield to call assume che la data di call coincida con una data di stacco cedola.
+- Pareggio, tempo di recupero e scenari a 1 anno non reinvestono le cedole e non considerano lo scorrimento sulla curva (ogni titolo mantiene il proprio rendimento più lo spostamento). Il confronto non include commissioni, bollo e yield to call.
 
 Strumento a scopo informativo, non costituisce consulenza finanziaria.
