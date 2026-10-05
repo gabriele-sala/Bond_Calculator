@@ -29,6 +29,8 @@
     return /^[-+]?\d*\.?\d+(e[-+]?\d+)?$/i.test(t) ? Number(t) : NaN;
   }
   const show = (x, d) => (Number.isFinite(x) ? String(+x.toFixed(d)).replace('.', ',') : '');
+  // Valore esatto, senza arrotondare, con la virgola decimale.
+  const exact = (x) => Share.plain(x).replace('.', ',');
 
   // ------------------------------------------------------------- date
 
@@ -82,14 +84,32 @@
 
   const FIELDS = ['isin', 'settlement', 'maturity', 'coupon', 'freq', 'daycount', 'redemption', 'price', 'yield', 'yieldbasis', 'nominal', 'commission', 'tax', 'taxcustom', 'calldate', 'callprice'];
 
+  // Aperto un link condiviso, l'analisi salvata dall'utente resta com'è finché
+  // non modifica qualcosa: il link da solo non la sovrascrive.
+  let holdSave = false;
+  // Il link resta nell'indirizzo finché l'analisi modificata non è salvata:
+  // se la prima modifica non si salva (campo in errore), una ricarica lo riapre.
+  let cleanPending = false;
+
   function save() {
+    if (holdSave) return;
     try {
       const state = {};
       FIELDS.forEach((f) => (state[f] = $(f).value));
       state.mode = mode();
       state.stamp = $('stamp').checked;
+      state.isinLoaded = isinLoaded;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (cleanPending) cleanUrl();
     } catch (e) { /* archiviazione non disponibile */ }
+  }
+
+  function hasSaved() {
+    try {
+      return !!localStorage.getItem(STORAGE_KEY);
+    } catch (e) {
+      return false;
+    }
   }
 
   function restore() {
@@ -100,6 +120,9 @@
       $('mode-' + (state.mode === 'yield' ? 'yield' : 'price')).checked = true;
       $('stamp').checked = !!state.stamp;
       $('call-details').open = !!state.calldate;
+      // Titolo già caricato dall'ISIN; i salvataggi precedenti non lo dicono.
+      const valid = Isin.isValid(Isin.normalize($('isin').value));
+      isinLoaded = valid && (state.isinLoaded === undefined ? true : !!state.isinLoaded);
       return true;
     } catch (e) {
       return false;
@@ -148,10 +171,16 @@
       mode: m,
     };
 
-    if (m === 'price') {
-      input.cleanPrice = need('price', $('price').value.trim()
-        ? 'Il prezzo secco deve essere maggiore di zero, ad esempio 98,50.'
-        : 'Inserisci il prezzo secco del titolo. Per i titoli quotati lo trovi su Borsa Italiana.', { gt: 0 });
+    const priceEmpty = m === 'price' && $('price').value.trim() === '';
+    $('price-default').hidden = !priceEmpty;
+    $('price').setAttribute('aria-describedby', priceEmpty ? 'price-help price-default' : 'price-help');
+    if (priceEmpty) {
+      // Senza prezzo inserito si calcola alla pari, come valore iniziale.
+      input.cleanPrice = 100;
+      input.priceDefaulted = true;
+      mark('price', false);
+    } else if (m === 'price') {
+      input.cleanPrice = need('price', 'Il prezzo di acquisto deve essere un numero maggiore di zero, ad esempio 98,50.', { gt: 0 });
     } else {
       const yv = need('yield', 'Il rendimento deve essere un numero, ad esempio 3,5.');
       const y = yv / 100;
@@ -234,6 +263,9 @@
     $('r-dirty-sub').textContent = 'secco ' + num(r.clean, 4) + ' + rateo ' + num(r.accrued, 4);
     $('r-mod').textContent = num(r.risk.modified, 2);
     $('r-mod-sub').textContent = 'Macaulay ' + num(r.risk.macaulay, 2) + ' anni';
+    // DV01 tecnico per 100 di nominale e la sua traduzione in euro su 100.000 € nominali.
+    $('r-dv01').textContent = num(r.risk.dv01, 4);
+    $('r-dv01-sub').textContent = 'Su 100.000 € nominali, +1 pb di rendimento ≈ variazione di circa −' + num(r.risk.dv01 * 1000, 2) + ' €';
 
     const Q = input.nominal / 100;
     const yieldFacts = [
@@ -319,8 +351,8 @@
   let headlineVisible = true;
   function updateDock(r) {
     if (r) {
-      $('dock-gross').textContent = pct(r.ytmEffective, 2);
       $('dock-net').textContent = pct(r.investor.effective, 2);
+      $('dock-gross').textContent = pct(r.ytmEffective, 2);
       $('dock-third').textContent = num(r.clean, 2);
     }
     $('dock').hidden = headlineVisible || !last;
@@ -384,7 +416,9 @@
       .map((s) => {
         const euro = Q * (s.dirty - r.dirty);
         const cls = s.change < 0 ? ' neg' : '';
-        return `<div class="impact"><span class="impact-shift">${s.bp > 0 ? '+' : '−'}${Math.abs(s.bp)} pb</span><span class="impact-value${cls}">${signed(s.change * 100, 1)}%</span><span class="impact-euro${cls}">${euro < 0 ? '−' : '+'}${num(Math.abs(euro), 0)} €</span></div>`;
+        const what = s.bp > 0 ? `Se il rendimento sale di ${s.bp} pb` : `Se il rendimento scende di ${Math.abs(s.bp)} pb`;
+        const kind = euro < 0 ? 'perdita immediata stimata' : 'guadagno immediato stimato';
+        return `<div class="impact"><span class="impact-shift">${what}</span><span class="impact-value${cls}">${signed(s.change * 100, 1)}%</span><span class="impact-euro">${kind}: <b class="${cls.trim()}">${euro < 0 ? '−' : '+'}${num(Math.abs(euro), 0)} €</b></span></div>`;
       })
       .join('');
   }
@@ -595,7 +629,7 @@
 
   function loadCatalog() {
     if (!catalogPromise) {
-      catalogPromise = fetch(CONFIG.catalogUrl || 'data/titoli-stato.json', { cache: 'no-cache' })
+      catalogPromise = fetch(market().catalogUrl || CONFIG.catalogUrl || 'data/titoli-stato.json', { cache: 'no-cache' })
         .then((res) => {
           if (!res.ok) throw new Error('HTTP ' + res.status);
           return res.json();
@@ -624,22 +658,67 @@
   function updatePriceLink(tipo) {
     const code = Isin.normalize($('isin').value);
     const valid = Isin.isValid(code);
-    $('isin-price').hidden = !valid;
-    if (valid) $('isin-price').href = Isin.borsaItalianaUrl(code, tipo);
+    const m = market();
+    $('isin-price').hidden = !valid || !m.priceUrl;
+    if (valid && m.priceUrl) {
+      $('isin-price').href = m.priceUrl(code, tipo);
+      $('isin-price').firstChild.textContent = 'Vedi il prezzo su ' + m.priceSource + ' ';
+    }
+  }
+
+  // ------------------------------------------------ mercati e guida ISIN
+
+  const MARKETS = window.BOND_MARKETS || [];
+  let marketId = 'it';
+  const market = () => MARKETS.find((m) => m.id === marketId) || MARKETS[0] || {};
+
+  function renderMarkets() {
+    const active = MARKETS.filter((m) => m.active);
+    const soon = MARKETS.filter((m) => !m.active);
+    $('market-list').innerHTML =
+      active.map((m) => `<button type="button" class="market-chip" role="radio" aria-checked="${m.id === marketId}" data-market="${esc(m.id)}"><span aria-hidden="true">${m.flag}</span> ${esc(m.name)}</button>`).join('') +
+      (soon.length
+        ? `<span class="market-soon"><span class="market-soon-label">Prossimamente</span>${soon.map((m) => `<span class="flag" title="${esc(m.name)}" aria-hidden="true">${m.flag}</span>`).join(' ')}<span class="sr-only">${soon.map((m) => esc(m.name)).join(', ')}</span></span>`
+        : '');
+  }
+
+  // Guida in 4 passi: 1 ISIN, 2 Carica, 3 Verifica il prezzo, 4 Inserisci il prezzo.
+  // `current` è il passo da fare; quelli prima sono completati (5 = tutti).
+  let isinLoaded = false;
+  function setStep(current) {
+    document.querySelectorAll('#isin-steps li').forEach((li) => {
+      const n = Number(li.dataset.step);
+      li.classList.toggle('done', n < current);
+      li.classList.toggle('current', n === current);
+      if (n === current) li.setAttribute('aria-current', 'step');
+      else li.removeAttribute('aria-current');
+    });
+  }
+  function syncSteps() {
+    if (!isinLoaded) setStep(Isin.isValid(Isin.normalize($('isin').value)) ? 2 : 1);
+    else setStep($('price').value.trim() ? 5 : 3);
   }
 
   async function loadIsin() {
     const code = Isin.normalize($('isin').value);
     $('isin').value = code;
+    isinLoaded = false;
     if (!Isin.isValid(code)) {
       $('isin').setAttribute('aria-invalid', 'true');
-      setIsinStatus(code ? 'Codice ISIN non valido: controlla le 12 lettere e cifre.' : 'Inserisci un codice ISIN, ad esempio IT0005….', 'warn');
+      setIsinStatus(!code
+        ? 'Inserisci un codice ISIN, ad esempio IT0005607970.'
+        : /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(code)
+          ? 'Codice ISIN non valido: l\'ultima cifra, di controllo, non corrisponde alle altre. Probabilmente c\'è un errore di battitura: controlla lettere e cifre.'
+          : 'Codice ISIN non valido: servono 12 caratteri (2 lettere, 9 lettere o cifre, 1 cifra di controllo). Controlla di averlo copiato per intero.', 'warn');
       updatePriceLink();
+      syncSteps();
       return;
     }
     $('isin').setAttribute('aria-invalid', 'false');
     $('isin-load').disabled = true;
-    setIsinStatus('Ricerca in corso…');
+    $('isin-load').textContent = 'Caricamento…';
+    $('isin-box').setAttribute('aria-busy', 'true');
+    setIsinStatus('Caricamento dei dati del titolo…');
     try {
       let catalog;
       try {
@@ -652,9 +731,9 @@
       const t = catalog.map.get(code);
       updatePriceLink(t && t.tipo);
       if (!t) {
-        setIsinStatus(code.startsWith('IT')
-          ? 'Titolo non trovato fra i titoli di Stato in circolazione' + (catalog.updated ? ' al ' + longDate(catalog.updated) : '') + '. Il MEF aggiorna l\'elenco una volta al mese, quindi le emissioni più recenti arrivano dopo. Per altre obbligazioni inserisci i dati a mano.'
-          : 'La ricerca copre i titoli di Stato italiani. Per questa obbligazione inserisci i dati a mano.', 'info');
+        setIsinStatus(code.startsWith(market().isinPrefix || 'IT')
+          ? 'ISIN non riconosciuto: non è fra i titoli di Stato italiani in circolazione' + (catalog.updated ? ' al ' + longDate(catalog.updated) : '') + '. Il MEF aggiorna l\'elenco una volta al mese, quindi le emissioni più recenti arrivano dopo. Per altre obbligazioni inserisci i dati a mano.'
+          : 'ISIN di un altro Paese: per ora la ricerca copre solo i titoli di Stato italiani. Per questa obbligazione inserisci i dati a mano.', code.startsWith(market().isinPrefix || 'IT') ? 'warn' : 'info');
         return;
       }
       const r = Isin.toFormValues(t, $('settlement').value);
@@ -663,6 +742,7 @@
         return;
       }
       const v = r.values;
+      userEdited();
       $('maturity').value = v.maturity;
       $('coupon').value = show(v.coupon, 4);
       $('freq').value = String(v.freq);
@@ -675,7 +755,7 @@
       $('mode-price').checked = true;
       $('price').value = '';
 
-      let priceNote = 'Ora inserisci il prezzo secco: lo trovi su Borsa Italiana.';
+      let priceNote = 'Ora verifica il prezzo su ' + (market().priceSource || 'Borsa Italiana') + ' e inseriscilo come prezzo di acquisto, oppure scrivi un prezzo ipotetico. Senza prezzo il calcolo usa 100.';
       try {
         const p = await Isin.fetchPrice(code, CONFIG.priceEndpoint);
         if (p) {
@@ -685,11 +765,20 @@
       } catch (e) {
         priceNote = e.message + ' Inserisci il prezzo a mano.';
       }
-      setIsinStatus(t.descrizione + ': dati caricati. ' + priceNote, 'ok');
+      isinLoaded = true;
+      const when = longDate(v.maturity);
+      const details = v.coupon ? `cedola ${upTo2.format(v.coupon)}% ${FREQ_LABEL[v.freq]}, scadenza ${when}` : `zero coupon, scadenza ${when}`;
+      setIsinStatus(`✓ Dati del titolo caricati: ${t.descrizione} (${details}). ${priceNote}`, 'ok');
       compute();
+      syncSteps();
       if (!$('price').value) $('price').focus();
     } finally {
       $('isin-load').disabled = false;
+      $('isin-load').textContent = 'Carica';
+      $('isin-box').removeAttribute('aria-busy');
+      syncSteps();
+      // Disattivato durante il caricamento, il pulsante perde il fuoco: lo riprende.
+      if (!document.activeElement || document.activeElement === document.body) $('isin-load').focus();
     }
   }
 
@@ -774,6 +863,7 @@
     const notes = [];
     if (input.call) notes.push('la call non è considerata');
     if (input.commission > 0 || input.stampDuty) notes.push('commissioni e bollo non sono considerati');
+    if (input.priceDefaulted) notes.push('prezzo non inserito: usata la pari, 100');
     setPfStatus(`${pos.label} aggiunto: ${positions.length} ${positions.length === 1 ? 'titolo' : 'titoli'} nel confronto${notes.length ? ' (' + notes.join(', ') + ')' : ''}.`, 'ok');
   }
 
@@ -808,11 +898,16 @@
     positions = positions.concat(added);
     savePositions();
     renderPortfolio();
-    setPfStatus(`Esempio caricato: ${added.length} BTP veri dall'elenco del MEF, con prezzi di esempio ricavati da rendimenti ipotetici fra il 2,6% e il 4,5%. Sostituiscili con i prezzi di mercato.`, 'info');
+    setPfStatus(added.length === 1
+      ? `Esempio: aggiunto ${added[0].label}, con un prezzo di esempio ricavato da un rendimento ipotetico. Sostituiscilo con il prezzo di mercato.`
+      : `Esempio caricato: ${added.length} BTP veri dall'elenco del MEF, con prezzi di esempio ricavati da rendimenti ipotetici fra il 2,6% e il 4,5%. Sostituiscili con i prezzi di mercato.`, 'info');
   }
 
   function openPosition(pos) {
+    userEdited();
     $('isin').value = pos.isin || '';
+    $('isin').setAttribute('aria-invalid', 'false');
+    isinLoaded = Isin.isValid(Isin.normalize(pos.isin || ''));
     setIsinStatus('');
     updatePriceLink();
     $('maturity').value = pos.maturity;
@@ -833,6 +928,7 @@
     $('commission').value = '0';
     $('stamp').checked = false;
     compute();
+    syncSteps();
     setIsinStatus(pos.label + ': aperto dal confronto, senza commissioni né bollo.', 'ok');
     $('bond-form').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     $('price').focus({ preventScroll: true });
@@ -845,12 +941,14 @@
     const nodes = ['pf-n2', 'pf-n10', 'pf-n30'].map((id) => {
       const raw = $(id).value.trim().replace(/\u2212/g, '-').replace(/\s*pb$/i, '');
       const v = raw === '' ? 0 : raw.includes('%') ? NaN : parseNum(raw);
-      $(id).setAttribute('aria-invalid', Number.isFinite(v) ? 'false' : 'true');
-      if (!Number.isFinite(v)) ok = false;
+      const valid = Number.isFinite(v) && Math.abs(v) <= 5000;
+      $(id).setAttribute('aria-invalid', valid ? 'false' : 'true');
+      if (!valid) ok = false;
       return v;
     });
     return ok ? nodes : null;
   }
+  const CURVE_WARNING = 'Curva personalizzata: scrivi gli spostamenti in punti base fra −5000 e 5000, ad esempio 25 o −25.';
   const beCell = (be, useNet) => {
     if (!be) return '–';
     const v = useNet ? be.net : be.gross;
@@ -876,15 +974,22 @@
     // Riquadri di sintesi
     const next12 = B.addYears(settlement, 1);
     const income12 = rows.reduce((s, r) => s + r.flows.filter((f) => f.kind === 'flusso' && f.date <= next12).reduce((a, f) => a + f.amount, 0), 0);
+    // Effetto di ±100 pb dagli scenari già calcolati dal portafoglio, sul nominale inserito.
+    const up = totals && PF.scenarioPnL(rows, [100, 100, 100]).total;
+    const down = totals && PF.scenarioPnL(rows, [-100, -100, -100]).total;
+    const money = (x) => (x < 0 ? '−' : '+') + num(Math.abs(x), 0) + ' €';
     const kpis = totals ? [
-      ['Controvalore', eur(totals.marketValue), 'tel quel, ' + num(totals.nominal, 0) + ' € nominali'],
+      ['Rendimento netto stimato', pct(totals.irrNet, 2), 'tasso interno dei flussi, con la tassazione di ogni titolo', 'primary'],
       ['Rendimento lordo', pct(totals.irrGross, 2), 'tasso interno dei flussi'],
-      ['Netto stimato', pct(totals.irrNet, 2), 'con la tassazione di ogni titolo'],
+      ['Controvalore totale', eur(totals.marketValue), 'tel quel, ' + num(totals.nominal, 0) + ' € nominali'],
       ['Duration modificata', num(totals.modified, 2), 'vita residua media ' + num(totals.years, 1) + ' anni'],
-      ['DV01 totale', eur(totals.dv01), 'perdita per +1 pb'],
+      ['Convessità', num(totals.convexity, 2), 'pesata per il controvalore'],
+      ['DV01 totale', eur(totals.dv01), 'variazione per +1 pb di rendimento'],
+      ['Se i rendimenti cambiano di 100 pb', `<span class="rate-line">+100 pb → <b class="${up.pnl < 0 ? 'neg' : ''}">circa ${money(up.pnl)}</b></span><span class="rate-line">−100 pb → <b class="${down.pnl < 0 ? 'neg' : ''}">circa ${money(down.pnl)}</b></span>`, `effetto immediato: ${signed(up.pct * 100, 1)}% / ${signed(down.pct * 100, 1)}% del controvalore`, 'rates'],
       ['Incassi netti 12 mesi', eur(income12), 'cedole e rimborsi'],
     ] : [];
-    $('pf-kpis').innerHTML = kpis.map(([l, v, s]) => `<div class="pf-kpi"><span class="label">${l}</span><span class="value">${v}</span><span class="sub">${s}</span></div>`).join('');
+    $('pf-summary-title').hidden = !totals;
+    $('pf-kpis').innerHTML = kpis.map(([l, v, s, cls]) => `<div class="pf-kpi${cls ? ' ' + cls : ''}"><span class="label">${l}</span><span class="value">${v}</span><span class="sub">${s}</span></div>`).join('');
 
     // Tabella di confronto
     const rowHtml = rows.map((r) => {
@@ -920,12 +1025,20 @@
     // Scenari
     const measure = pfMeasure();
     const custom = customNodes();
-    if (!custom) setPfStatus('Curva personalizzata: scrivi gli spostamenti in punti base, ad esempio 25 o −25.', 'warn');
+    if (!custom) setPfStatus(CURVE_WARNING, 'warn');
+    else if ($('pf-status').textContent === CURVE_WARNING) setPfStatus('', '');
     const scen = PF.SCENARIOS.slice();
     if (custom && custom.some((x) => x !== 0)) scen.push({ key: 'custom', label: 'Personalizzato', nodes: custom, curve: true });
     const cols = scen.map((sc) => (measure === 'now' ? PF.scenarioPnL(rows, sc.nodes) : PF.scenarioHorizon(rows, sc.nodes, 1, settlement)));
     const valueOf = (x) => (measure === 'now' ? x.pct : anyTax ? x.net : x.gross);
-    const best = cols.map((c) => (measure === '1y' && rows.length > 1 ? c.items.reduce((bi, x, i, a) => (valueOf(x) > valueOf(a[bi]) ? i : bi), 0) : -1));
+    const best = cols.map((c) => {
+      if (measure !== '1y' || rows.length < 2) return -1;
+      let bi = -1;
+      c.items.forEach((x, i) => {
+        if (Number.isFinite(valueOf(x)) && (bi < 0 || valueOf(x) > valueOf(c.items[bi]))) bi = i;
+      });
+      return bi;
+    });
     const cell = (x, isBest) => {
       const v = valueOf(x);
       const cls = v < 0 ? ' class="neg"' : '';
@@ -942,10 +1055,15 @@
       'Negli scenari di curva lo spostamento è fissato a 2, 10 e 30 anni e interpolato sulla vita residua di ogni titolo: irripidimento −25, +25, +50 pb; appiattimento +25, 0, −25 pb.';
 
     // Incassi per anno
-    const cal = PF.cashflowCalendar(rows);
-    const tot = cal.reduce((s, e) => ({ g: s.g + e.couponsGross, n: s.n + e.couponsNet, r: s.r + e.redemptionsNet, t: s.t + e.couponsNet + e.redemptionsNet }), { g: 0, n: 0, r: 0, t: 0 });
+    // Importi arrotondati ai centesimi prima di sommarli, così righe e totali tornano.
+    const cents = (x) => Math.round(x * 100) / 100;
+    const cal = PF.cashflowCalendar(rows).map((e) => {
+      const g = cents(e.couponsGross), n = cents(e.couponsNet), r = cents(e.redemptionsNet);
+      return { year: e.year, g, n, r, hasR: e.redemptions > 0, t: cents(n + r) };
+    });
+    const tot = cal.reduce((s, e) => ({ g: cents(s.g + e.g), n: cents(s.n + e.n), r: cents(s.r + e.r), t: cents(s.t + e.t) }), { g: 0, n: 0, r: 0, t: 0 });
     $('pf-cal').querySelector('tbody').innerHTML = cal
-      .map((e) => `<tr><td>${e.year}</td><td>${num(e.couponsGross, 2)}</td><td>${num(e.couponsNet, 2)}</td><td>${e.redemptions ? num(e.redemptionsNet, 2) : ''}</td><td>${num(e.couponsNet + e.redemptionsNet, 2)}</td></tr>`)
+      .map((e) => `<tr><td>${e.year}</td><td>${num(e.g, 2)}</td><td>${num(e.n, 2)}</td><td>${e.hasR ? num(e.r, 2) : ''}</td><td>${num(e.t, 2)}</td></tr>`)
       .join('');
     $('pf-cal').querySelector('tfoot').innerHTML = `<tr><td>Totale</td><td>${num(tot.g, 2)}</td><td>${num(tot.n, 2)}</td><td>${num(tot.r, 2)}</td><td>${num(tot.t, 2)}</td></tr>`;
   }
@@ -955,11 +1073,20 @@
     const a = document.activeElement;
     const row = a && a.closest && a.closest('#pf-table tbody tr');
     const key = row && { id: row.dataset.id, field: a.dataset.field, action: a.dataset.action };
+    // Dopo un Tab il browser seleziona tutto il campo: la selezione va ripristinata,
+    // altrimenti ciò che si scrive si aggiunge al valore vecchio.
+    const whole = a && a.tagName === 'INPUT' && a.selectionStart === 0 && a.selectionEnd === a.value.length;
+    const caret = a && a.tagName === 'INPUT' ? [a.selectionStart, a.selectionEnd] : null;
     renderPortfolio();
     if (!key) return;
     const tr = [...$('pf-table').querySelectorAll('tbody tr')].find((t) => t.dataset.id === key.id);
     const target = tr && (key.field ? tr.querySelector(`[data-field="${key.field}"]`) : tr.querySelector(`[data-action="${key.action}"]`));
-    if (target) target.focus();
+    if (!target) return;
+    target.focus();
+    if (target.tagName === 'INPUT') {
+      if (whole) target.select();
+      else if (caret) target.setSelectionRange(Math.min(caret[0], target.value.length), Math.min(caret[1], target.value.length));
+    }
   }
 
   // Ricalcolo quando cambia la data di regolamento, anche se il calcolatore è in
@@ -1036,17 +1163,220 @@
     renderPortfolio();
   }
 
+  // ------------------------------------------------ condivisione
+
+  function setShareStatus(text, kind) {
+    $('share-status').textContent = text;
+    $('share-status').className = 'isin-status' + (kind ? ' ' + kind : '');
+  }
+
+  // Messaggi legati a dati che l'utente ha appena cambiato: link copiato,
+  // link aperto, ripristino. Spariscono alla prima modifica.
+  function clearNotices() {
+    setShareStatus('', '');
+    $('share-url').hidden = true;
+    $('share-url').value = '';
+    $('back-to-own').hidden = true;
+    $('reset-status').textContent = '';
+  }
+
+  // Toglie i dati del link dall'indirizzo: ricaricando si ritrova l'analisi salvata.
+  function cleanUrl() {
+    cleanPending = false;
+    try {
+      if (location.search) history.replaceState(null, '', location.pathname + location.hash);
+    } catch (e) { /* cronologia non modificabile */ }
+  }
+
+  // Alla prima modifica l'analisi del link diventa quella dell'utente: si salva
+  // e l'indirizzo torna pulito.
+  function userEdited() {
+    if (holdSave) cleanPending = true;
+    holdSave = false;
+    clearNotices();
+  }
+
+  // Dati del calcolatore in formato tecnico, per il link condiviso.
+  function shareState() {
+    const code = Isin.normalize($('isin').value);
+    const taxSel = $('tax').value;
+    const st = {
+      isin: Isin.isValid(code) ? code : '',
+      settlement: $('settlement').value,
+      maturity: $('maturity').value,
+      coupon: parseNum($('coupon').value),
+      freq: $('freq').value,
+      daycount: $('daycount').value,
+      redemption: parseNum($('redemption').value),
+      mode: mode(),
+      nominal: parseNum($('nominal').value, true),
+      commission: $('commission').value.trim() === '' ? 0 : parseNum($('commission').value, true),
+      tax: taxSel === 'custom' ? parseNum($('taxcustom').value) / 100 : Number(taxSel),
+      stamp: $('stamp').checked,
+    };
+    if (st.mode === 'price') st.price = parseNum($('price').value);
+    else {
+      st.yield = parseNum($('yield').value);
+      st.yieldbasis = $('yieldbasis').value;
+    }
+    if ($('calldate').value) {
+      st.calldate = $('calldate').value;
+      st.callprice = parseNum($('callprice').value);
+    }
+    return st;
+  }
+
+  // Applica al modulo i dati arrivati da un link condiviso.
+  function applyShared(d) {
+    if (d.isin) $('isin').value = d.isin;
+    $('settlement').value = d.settlement || B.toISO(defaultSettlement());
+    $('maturity').value = d.maturity;
+    // Valori scritti per intero: il destinatario calcola sugli stessi numeri.
+    if (d.coupon !== undefined) $('coupon').value = exact(d.coupon);
+    if (d.freq) $('freq').value = d.freq;
+    if (d.daycount) $('daycount').value = d.daycount;
+    if (d.redemption !== undefined) $('redemption').value = exact(d.redemption);
+    $('mode-' + (d.mode === 'yield' ? 'yield' : 'price')).checked = true;
+    $('price').value = d.price !== undefined ? exact(d.price) : '';
+    if (d.yield !== undefined) $('yield').value = exact(d.yield);
+    if (d.yieldbasis) $('yieldbasis').value = d.yieldbasis;
+    if (d.nominal !== undefined) $('nominal').value = Number.isInteger(d.nominal) ? num(d.nominal, 0) : exact(d.nominal);
+    if (d.commission !== undefined) $('commission').value = exact(d.commission);
+    if (d.tax !== undefined) {
+      const opt = ['0.125', '0.26', '0'].find((o) => Math.abs(Number(o) - d.tax) < 1e-12);
+      $('tax').value = opt || 'custom';
+      // L'aliquota viaggia come frazione: tolgo il rumore della moltiplicazione per 100.
+      $('taxcustom').value = opt ? '' : exact(+(d.tax * 100).toPrecision(12));
+    }
+    if (d.stamp !== undefined) $('stamp').checked = d.stamp;
+    $('calldate').value = d.calldate || '';
+    $('callprice').value = d.calldate && d.callprice !== undefined ? exact(d.callprice) : '';
+    $('call-details').open = !!d.calldate;
+  }
+
+  async function shareAnalysis() {
+    if (!last) {
+      setShareStatus('Completa prima i dati del titolo: il link condivide un\'analisi valida.', 'warn');
+      return;
+    }
+    const url = location.href.split('#')[0].split('?')[0] + '?' + Share.encode(shareState());
+    $('share-url').hidden = true;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Analisi obbligazione', url });
+        setShareStatus('Analisi condivisa.', 'ok');
+        return;
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareStatus('Link copiato', 'ok');
+    } catch (e) {
+      // Appunti non disponibili: il link resta selezionato in un campo da copiare.
+      $('share-url').value = url;
+      $('share-url').hidden = false;
+      $('share-url').select();
+      setShareStatus('Copia il link qui sotto.', 'info');
+    }
+  }
+
+  // ------------------------------------------------ ripristino
+
+  function applyDefaults() {
+    applyPreset('btp');
+    $('nominal').value = '10.000';
+    $('commission').value = '0';
+    $('taxcustom').value = '';
+    $('stamp').checked = false;
+    $('isin').value = '';
+    $('yield').value = '';
+    $('yieldbasis').value = 'eff';
+  }
+
+  // Dopo un link condiviso: torna all'analisi che l'utente aveva salvato.
+  function backToOwn() {
+    userEdited();
+    cleanUrl();
+    if (!restore()) applyDefaults();
+    const s = B.parseDate($('settlement').value);
+    if (!s || s < todayUTC()) $('settlement').value = B.toISO(defaultSettlement());
+    $('isin').setAttribute('aria-invalid', 'false');
+    setIsinStatus('');
+    updatePriceLink();
+    compute();
+    syncSteps();
+    onSettlementInput();
+    setShareStatus('Hai di nuovo la tua analisi.', 'ok');
+    $('share-btn').focus();
+  }
+
+  function resetCalculator() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) { /* archiviazione non disponibile */ }
+    userEdited();
+    cleanUrl();
+    applyDefaults();
+    isinLoaded = false;
+    document.querySelectorAll('#bond-form [aria-invalid="true"]').forEach((el) => el.setAttribute('aria-invalid', 'false'));
+    setIsinStatus('');
+    updatePriceLink();
+    syncSteps();
+    compute();
+    onSettlementInput();
+    $('reset-status').textContent = 'Calcolatore ripristinato ai valori iniziali. Il portafoglio non è stato modificato.';
+    $('reset-status').className = 'isin-status ok';
+  }
+
   // ------------------------------------------------------------- avvio
 
   function init() {
-    if (!restore()) {
-      applyPreset('btp');
-      $('nominal').value = '10.000';
-      $('commission').value = '0';
+    // Un link condiviso ricostruisce l'analisi così com'era, data compresa.
+    const link = Share.parse(location.search);
+    const shared = link.data;
+    // Share controlla solo il formato dell'ISIN; qui anche la cifra di controllo.
+    if (shared && shared.isin && !Isin.isValid(shared.isin)) {
+      delete shared.isin;
+      link.problems.unshift('ISIN');
     }
-    // Una data di regolamento passata viene riportata a T+2.
-    const s = B.parseDate($('settlement').value);
-    if (!s || s < todayUTC()) $('settlement').value = B.toISO(defaultSettlement());
+    const ownSaved = hasSaved();
+    if (shared) {
+      applyDefaults();
+      applyShared(shared);
+      isinLoaded = Isin.isValid(Isin.normalize($('isin').value));
+      holdSave = true;
+    } else {
+      if (!restore()) applyDefaults();
+      // Una data di regolamento passata viene riportata a T+2.
+      const s = B.parseDate($('settlement').value);
+      if (!s || s < todayUTC()) $('settlement').value = B.toISO(defaultSettlement());
+    }
+    // Il link resta nell'indirizzo finché non si modifica nulla, così una
+    // ricarica lo riapre; un link senza analisi si toglie subito.
+    if (link.known && !shared) cleanUrl();
+
+    renderMarkets();
+    $('market-list').addEventListener('click', (e) => {
+      const chip = e.target.closest('[data-market]');
+      if (!chip || chip.dataset.market === marketId) return;
+      marketId = chip.dataset.market;
+      renderMarkets();
+      // Il pulsante è stato ridisegnato: il fuoco passa a quello nuovo.
+      const next = $('market-list').querySelector('[aria-checked="true"]');
+      if (next) next.focus();
+      updatePriceLink();
+    });
+    $('reset-calc').addEventListener('click', resetCalculator);
+    $('share-btn').addEventListener('click', shareAnalysis);
+    $('back-to-own').addEventListener('click', backToOwn);
+    $('isin-price').addEventListener('click', () => {
+      if (isinLoaded && !$('price').value.trim()) setStep(4);
+    });
+    $('price').addEventListener('input', () => {
+      if (isinLoaded) syncSteps();
+    });
 
     $('isin-load').addEventListener('click', loadIsin);
     $('isin').addEventListener('keydown', (e) => {
@@ -1058,7 +1388,9 @@
     $('isin').addEventListener('input', () => {
       $('isin').setAttribute('aria-invalid', 'false');
       setIsinStatus('');
+      isinLoaded = false;
       updatePriceLink();
+      syncSteps();
       save();
     });
     updatePriceLink();
@@ -1067,11 +1399,15 @@
 
     $('preset').addEventListener('change', (e) => {
       $('isin').value = '';
+      $('isin').setAttribute('aria-invalid', 'false');
       setIsinStatus('');
+      isinLoaded = false;
       updatePriceLink();
+      syncSteps();
       applyPreset(e.target.value);
       e.target.value = '';
       compute();
+      onSettlementInput();
     });
     document.querySelectorAll('input[name="mode"]').forEach((el) =>
       el.addEventListener('change', () => {
@@ -1094,6 +1430,8 @@
       }
       compute();
     });
+    // In cattura: parte prima degli ascoltatori dei singoli campi (l'ISIN salva da sé).
+    $('bond-form').addEventListener('input', userEdited, true);
     $('bond-form').addEventListener('input', (e) => {
       if (e.target.id === 'isin' || e.target.id === 'preset' || e.target.id === 'yieldbasis' || e.target.name === 'mode') return;
       compute();
@@ -1122,6 +1460,16 @@
       window.addEventListener('resize', drawChart);
     }
     compute();
+    syncSteps();
+    if (shared && link.problems.length) {
+      setShareStatus('Link incompleto o modificato. Dati mancanti o non validi: ' + link.problems.join(', ') + '. Al loro posto ci sono i valori iniziali: controllali prima di usare i risultati.', 'warn');
+    } else if (shared) {
+      setShareStatus('Analisi aperta da un link condiviso: dati e data di regolamento sono quelli del link.', 'info');
+    } else if (link.known) {
+      setShareStatus('Link non valido: manca la data di scadenza del titolo, quindi l\'analisi non si può ricostruire.' + (ownSaved ? ' È rimasta la tua ultima analisi.' : ''), 'warn');
+    }
+    // La propria analisi salvata resta recuperabile finché non si modifica nulla.
+    if (shared && ownSaved) $('back-to-own').hidden = false;
   }
 
   init();

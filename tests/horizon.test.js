@@ -154,3 +154,30 @@ test('date non plausibili rifiutate', () => {
   assert.throws(() => B.createBond({ ...base, settlement: d('0202-10-07') }), /1900/);
   assert.throws(() => B.createBond({ ...base, settlement: d('2026-10-07'), maturity: d('2199-01-01') }), /100 anni/);
 });
+
+test('prezzo a una data qualsiasi: identico a ricostruire il titolo', () => {
+  for (const dayCount of Object.keys(B.DAY_COUNTS)) {
+    const b = B.createBond({ settlement: d('2026-10-07'), maturity: d('2031-02-28'), couponRate: 0.045, freq: 4, redemption: 100, dayCount });
+    for (const iso of ['2026-10-07', '2026-11-30', '2027-02-28', '2028-02-29', '2030-12-31']) {
+      const ref = B.createBond({ ...b.params, settlement: d(iso) });
+      const p = B.priceAt(b, d(iso), 0.041);
+      close(p.dirty, B.dirtyFromYield(ref, 0.041), 1e-12, `${dayCount} ${iso}`);
+      close(p.accrued, ref.accrued, 1e-12, `${dayCount} ${iso} rateo`);
+    }
+  }
+});
+
+test('tempo di recupero: margine che torna sotto il costo per mesi (regressione ACT/360)', () => {
+  const b = B.createBond({ settlement: d('2027-01-21'), maturity: d('2034-03-16'), couponRate: 0.12, freq: 4, redemption: 100, dayCount: 'ACT/360' });
+  const opts = { nominal: 10000, cleanPrice: 163.647, taxRate: 0.26 };
+  const y0 = B.yieldFromClean(b, 163.647);
+  const s = B.scenarios(b, y0, [50], true)[0];
+  assert.equal(B.toISO(B.recoveryTime(b, opts, y0, s.yield - y0).net.date), '2033-03-08');
+});
+
+test('ACT/360 e ACT/365: rateo standard, non limitato a una cedola', () => {
+  // Periodo trimestrale di 92 giorni effettivi, E = 90: il rateo supera la cedola come in Excel.
+  const b = B.createBond({ settlement: d('2026-09-30'), maturity: d('2028-10-01'), couponRate: 0.04, freq: 4, redemption: 100, dayCount: 'ACT/360' });
+  close(b.accrued, 1 * (b.A / b.E), 1e-12);
+  assert.ok(b.A > b.E);
+});

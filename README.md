@@ -22,7 +22,9 @@ In alto a destra si sceglie il **tema** (automatico, chiaro o scuro) e il **colo
 
 ## Ricerca per ISIN
 
-In cima al modulo si può cercare un titolo di Stato italiano per ISIN: cedola, frequenza, scadenza e tassazione si compilano da soli e restano modificabili. Il link "Vedi prezzo su Borsa Italiana" apre la scheda del titolo, da cui copiare il prezzo.
+In cima al modulo si può cercare un titolo di Stato italiano per ISIN, seguendo una guida in quattro passi: inserisci l'ISIN, Carica, verifica il prezzo, inserisci il prezzo di acquisto. Cedola, frequenza, scadenza e tassazione si compilano da soli e restano modificabili. Il link "Vedi il prezzo su Borsa Italiana" apre la scheda del titolo, da cui copiare il prezzo: il sito non scarica prezzi in automatico.
+
+Il mercato attivo è l'Italia. Francia, Germania, Spagna, USA e Giappone sono indicati come "prossimamente", con la rispettiva fonte ufficiale (`js/markets.js`), ma senza dati né collegamenti.
 
 - Codice ISIN verificato con la cifra di controllo (ISO 6166).
 - Gestiti: BTP, BTP Green, BTP Short Term, BOT e CTZ. CCTeu, BTP Italia, BTP€i, BTP Valore, BTP Più e BTP Futura vengono riconosciuti ma non calcolati (cedola variabile, indicizzata o crescente).
@@ -39,9 +41,23 @@ Il sito è pronto per ricevere i prezzi in automatico. Basta impostare `priceEnd
 
 dove `price` è il prezzo secco per 100 di nominale, oppure con stato 404 se il titolo non è disponibile. Se il servizio non risponde, il sito chiede il prezzo a mano.
 
+## Prezzo di acquisto
+
+Nel campo "Prezzo di acquisto / simulazione" va il prezzo secco per 100 di nominale: quello di mercato attuale oppure un prezzo ipotetico, per simulare un acquisto. Se il campo è vuoto il calcolo usa 100, cioè la pari, e lo dice sotto il campo.
+
+## Condividere un'analisi
+
+"Condividi analisi" crea un link con i dati del titolo e della simulazione nell'indirizzo (ISIN, date, cedola, frequenza, convenzione, rimborso, prezzo o rendimento, nominale, commissioni, aliquota, bollo, call). Dove il browser lo permette, di solito sul telefono, si apre la condivisione del sistema; altrimenti il link viene copiato. Chi apre il link vede la stessa analisi, con la stessa data di regolamento.
+
+- Nel link non ci sono dati personali né il portafoglio.
+- Un link aperto non sostituisce l'analisi salvata da chi lo riceve finché non modifica qualcosa; il pulsante "Torna alla tua analisi" la riporta.
+- Se il link è incompleto o modificato a mano, il sito dice quali dati non ha potuto leggere.
+
+"Ripristina calcolatore" riporta il modulo ai valori iniziali senza toccare il portafoglio; "Svuota portafoglio" fa l'opposto.
+
 ## Privacy
 
-Il sito non contatta nessun server esterno: niente analytics, niente cookie, nessuna libreria da CDN. Anche i font (IBM Plex e Instrument Serif, licenza SIL Open Font License, testi in `fonts/`) sono ospitati nel repository, così l'indirizzo IP dei visitatori non viene inviato a Google Fonts. Tutti i calcoli avvengono nel browser.
+Il sito non contatta nessun server esterno: niente analytics, niente cookie, nessuna libreria da CDN. L'ultima analisi, il portafoglio e la scelta del tema restano salvati solo nel browser (`localStorage`). Anche i font (IBM Plex e Instrument Serif, licenza SIL Open Font License, testi in `fonts/`) sono ospitati nel repository, così l'indirizzo IP dei visitatori non viene inviato a Google Fonts. Tutti i calcoli avvengono nel browser.
 
 ## Precisione
 
