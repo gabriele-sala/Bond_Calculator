@@ -6,27 +6,29 @@
 
   const KEY = 'bondcalc:aspetto';
   const PALETTES = ['verde', 'blu', 'ambra', 'grafite'];
+  const MODE_ID = { auto: 'auto', light: 'chiaro', dark: 'scuro' };
   const root = document.documentElement;
+
   // In modalità automatica il sito non tocca data-theme, che può essere impostato da chi
-  // ospita la pagina. Quando l'utente sceglie chiaro o scuro si ricorda il valore
-  // precedente, per ripristinarlo se torna su automatico.
-  let previousTheme = 'BOND_HOST_THEME' in window ? window.BOND_HOST_THEME : root.getAttribute('data-theme');
-  let overriding = root.hasAttribute('data-theme') && previousTheme !== root.getAttribute('data-theme');
+  // ospita la pagina. hostTheme è l'ultimo valore deciso dall'host, da ripristinare
+  // quando l'utente torna su automatico dopo aver scelto chiaro o scuro.
+  let hostTheme = 'BOND_HOST_THEME' in window ? window.BOND_HOST_THEME : root.getAttribute('data-theme');
 
   function read() {
     let saved = {};
     try {
       saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {};
-    } catch (e) { /* archiviazione non disponibile */ }
+    } catch (e) { /* archiviazione non disponibile o dato non valido */ }
     return {
       mode: saved.mode === 'light' || saved.mode === 'dark' ? saved.mode : 'auto',
       palette: PALETTES.includes(saved.palette) ? saved.palette : 'verde',
     };
   }
 
-  function write(state) {
+  // Salva solo il campo cambiato, per non cancellare quanto scelto in un'altra scheda.
+  function save(change) {
     try {
-      localStorage.setItem(KEY, JSON.stringify(state));
+      localStorage.setItem(KEY, JSON.stringify(Object.assign(read(), change)));
     } catch (e) { /* archiviazione non disponibile */ }
   }
 
@@ -36,44 +38,65 @@
     if (meta) meta.setAttribute('content', getComputedStyle(root).getPropertyValue('--bg').trim());
   }
 
-  function apply(state) {
-    if (state.mode !== 'auto') {
-      if (!overriding) {
-        previousTheme = root.getAttribute('data-theme');
-        overriding = true;
-      }
-      root.setAttribute('data-theme', state.mode);
-    } else if (overriding) {
-      if (previousTheme) root.setAttribute('data-theme', previousTheme);
-      else root.removeAttribute('data-theme');
-      overriding = false;
-    }
+  function setThemeAttribute(value) {
+    if (root.getAttribute('data-theme') === value) return;
+    if (value) root.setAttribute('data-theme', value);
+    else root.removeAttribute('data-theme');
+  }
+
+  function apply() {
+    setThemeAttribute(state.mode === 'auto' ? hostTheme : state.mode);
     if (state.palette === 'verde') root.removeAttribute('data-palette');
     else root.setAttribute('data-palette', state.palette);
     updateThemeColor();
   }
 
+  function syncControls() {
+    const mode = document.getElementById('tema-' + MODE_ID[state.mode]);
+    const palette = document.getElementById('colore-' + state.palette);
+    if (mode) mode.checked = true;
+    if (palette) palette.checked = true;
+  }
+
   const state = read();
-  const modeInput = document.getElementById('tema-' + { auto: 'auto', light: 'chiaro', dark: 'scuro' }[state.mode]);
-  const paletteInput = document.getElementById('colore-' + state.palette);
-  if (modeInput) modeInput.checked = true;
-  if (paletteInput) paletteInput.checked = true;
-  apply(state);
+  syncControls();
+  apply();
 
   document.querySelectorAll('input[name="tema"]').forEach((el) =>
     el.addEventListener('change', () => {
       state.mode = el.value;
-      write(state);
-      apply(state);
+      save({ mode: state.mode });
+      apply();
     })
   );
   document.querySelectorAll('input[name="colore"]').forEach((el) =>
     el.addEventListener('change', () => {
       state.palette = el.value;
-      write(state);
-      apply(state);
+      save({ palette: state.palette });
+      apply();
     })
   );
+
+  // Cambi di data-theme fatti dall'host dopo il caricamento: in automatico si seguono,
+  // con chiaro o scuro scelti dall'utente si ricordano ma vince la scelta dell'utente.
+  new MutationObserver(() => {
+    const current = root.getAttribute('data-theme');
+    if (state.mode === 'auto') hostTheme = current;
+    else if (current !== state.mode) {
+      hostTheme = current;
+      setThemeAttribute(state.mode);
+    }
+    updateThemeColor();
+  }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // Scelte fatte in un'altra scheda aperta sul sito.
+  window.addEventListener('storage', (e) => {
+    if (e.key !== KEY) return;
+    Object.assign(state, read());
+    syncControls();
+    apply();
+  });
+
   try {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
   } catch (e) { /* browser datati */ }

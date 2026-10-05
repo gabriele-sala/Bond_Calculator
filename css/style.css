@@ -232,6 +232,7 @@ body {
   padding-inline: clamp(16px, 4vw, 40px);
   padding-block: 32px 56px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 28px;
 }
 
@@ -255,7 +256,7 @@ body {
   gap: 10px 24px;
   margin-bottom: -12px;
 }
-.appearance-group { display: flex; align-items: center; gap: 10px; }
+.appearance-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
 .appearance-label {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
@@ -266,6 +267,8 @@ body {
 
 .seg-mini {
   display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 2px;
@@ -284,7 +287,7 @@ body {
 .seg-mini input:checked + label { background: var(--accent); color: var(--accent-ink); }
 .seg-mini input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.swatches { display: flex; gap: 8px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
 /* Ogni campione mostra l'accento della palette in chiaro (metà alta) e in scuro (metà bassa). */
 .swatches label {
   width: 26px;
@@ -298,6 +301,19 @@ body {
 .swatches input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 5px; }
 @media (max-width: 640px) {
   .appearance { justify-content: flex-start; margin-bottom: 0; }
+}
+/* Contrasto elevato (colori forzati dal sistema): i campioni restano visibili e la
+   scelta attiva si vede anche senza i colori della pagina. */
+@media (forced-colors: active) {
+  .swatches label { forced-color-adjust: none; border: 1px solid CanvasText; }
+  .swatches input:checked + label { box-shadow: none; outline: 3px solid Highlight; outline-offset: 2px; }
+  .seg-mini input:checked + label,
+  .segmented input:checked + label { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .wf-bar,
+  .chart .curve,
+  .chart .dur,
+  .chart .point,
+  .chart .hover-dot { forced-color-adjust: none; }
 }
 
 /* ---------------------------------------------------------------- testata */
