@@ -175,10 +175,12 @@
     const next = dates[0];
 
     const E = dc.periodLength(prev, next, f);
+    const is30 = p.dayCount.startsWith('30');
+    const rawA = dc.days(prev, p.settlement);
     // Con 30E/360 e scadenza a fine febbraio i giorni maturati possono superare
     // la lunghezza convenzionale del periodo: il rateo non supera una cedola.
-    const A = Math.min(dc.days(prev, p.settlement), E);
-    const DSC = p.dayCount.startsWith('30') ? E - A : actualDays(p.settlement, next);
+    const A = is30 ? Math.min(rawA, E) : rawA;
+    const DSC = is30 ? E - A : actualDays(p.settlement, next);
 
     const coupon = (100 * p.couponRate) / f;
     const accrued = coupon * (A / E);
@@ -188,7 +190,7 @@
     const firstT = DSC / E;
     function timeTo(date) {
       if (date <= next) {
-        return (dc.days(prev, date) - A) / E;
+        return (dc.days(prev, date) - rawA) / E;
       }
       let left = next;
       for (let j = 1; j < dates.length; j++) {
@@ -416,6 +418,33 @@
   // ------------------------------------------- orizzonte e pareggio
 
   /**
+   * Rateo e prezzo tel quel del titolo con regolamento a `date` (fra il
+   * regolamento originale e la scadenza esclusa) al rendimento nominale y.
+   * Usa il calendario già calcolato: stesso risultato di createBond con il
+   * nuovo regolamento, ma molto più veloce.
+   */
+  function priceAt(bond, date, y) {
+    const p = bond.params;
+    const f = bond.freq;
+    const dc = DAY_COUNTS[p.dayCount];
+    const flows = bond.cashflows;
+    let i = 0;
+    while (i < flows.length && flows[i].date <= date) i++;
+    const prev = i === 0 ? bond.prevCoupon : flows[i - 1].date;
+    const next = flows[i].date;
+    const E = dc.periodLength(prev, next, f);
+    const is30 = p.dayCount.startsWith('30');
+    const rawA = dc.days(prev, date);
+    const A = is30 ? Math.min(rawA, E) : rawA;
+    const DSC = is30 ? E - A : actualDays(date, next);
+    const accrued = bond.couponPerPeriod * (A / E);
+    const v = 1 + y / f;
+    let dirty = 0;
+    for (let k = i; k < flows.length; k++) dirty += flows[k].amount * Math.pow(v, -(DSC / E + (k - i)));
+    return { accrued, dirty, clean: dirty - accrued };
+  }
+
+  /**
    * Valore della posizione a una data futura: cedole incassate fino a quella
    * data (comprese quelle pagate quel giorno, senza reinvestimento) più la
    * vendita del titolo al rendimento nominale `yHorizon`. Se la data è la
@@ -456,8 +485,8 @@
       valueGross += redemption;
       valueNet += redemption - tax * Math.max(0, redemption - (Q * clean0 + commission));
     } else {
-      const later = createBond({ ...bond.params, settlement: horizonDate });
-      cleanEnd = cleanFromYield(later, yHorizon);
+      const later = priceAt(bond, horizonDate, yHorizon);
+      cleanEnd = later.clean;
       const accruedEnd = Q * later.accrued;
       const proceeds = Q * cleanEnd + accruedEnd;
       // Interessi maturati nel periodo cedolare in corso, dopo l'acquisto.
@@ -517,34 +546,18 @@
     const y = y0 + shift;
     const settle = bond.params.settlement;
     const maturity = bond.params.maturity;
-    const find = (key) => {
-      const ok = (date) => {
-        const v = horizonValue(bond, opts, date, y);
-        return key === 'gross' ? v.valueGross >= v.costGross - 1e-9 : v.valueNet >= v.costNet - 1e-9;
-      };
-      if (ok(settle)) return { date: settle, years: 0 };
-      // Il valore cresce nel tempo ma non in modo strettamente monotono: piccoli
-      // cali alle date cedola (ACT/360, ACT/365) e a fine mese (30/360 con bollo).
-      // Si avanza a passi mensili fino al primo mese in pari, poi si controllano
-      // uno per uno i giorni degli ultimi due mesi.
-      const samples = [settle];
-      for (let m = 1; ; m++) {
-        let date = addMonths(settle, m, false);
-        if (date > maturity) date = maturity;
-        samples.push(date);
-        if (ok(date)) {
-          const from = samples[Math.max(0, samples.length - 3)];
-          const days = actualDays(from, date);
-          for (let k = 1; k <= days; k++) {
-            const day = new Date(from.getTime() + k * MS_DAY);
-            if (ok(day)) return { date: day, years: actualDays(settle, day) / 365.25 };
-          }
-          return { date, years: actualDays(settle, date) / 365.25 };
-        }
-        if (date >= maturity) return null;
-      }
-    };
-    return { gross: find('gross'), net: find('net') };
+    // Il valore cresce nel tempo ma non in modo strettamente monotono (piccoli
+    // cali alle date cedola e a fine mese, con tasse e bollo): si controlla ogni
+    // giorno, dal regolamento alla scadenza, fino al primo in pari.
+    const out = { gross: null, net: null };
+    for (let day = settle; day <= maturity; day = new Date(day.getTime() + MS_DAY)) {
+      const v = horizonValue(bond, opts, day, y);
+      const years = actualDays(settle, day) / 365.25;
+      if (!out.gross && v.valueGross >= v.costGross - 1e-9) out.gross = { date: day, years };
+      if (!out.net && v.valueNet >= v.costNet - 1e-9) out.net = { date: day, years };
+      if (out.gross && out.net) break;
+    }
+    return out;
   }
 
   // ----------------------------------------------------------- analisi
@@ -654,6 +667,7 @@
     nominalToEffective,
     effectiveToNominal,
     shiftEffective,
+    priceAt,
     risk,
     investorFlows,
     investorYield,

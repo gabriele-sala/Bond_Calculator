@@ -816,6 +816,7 @@ table.coupons tr.redeem td:first-child { font-style: italic; }
 .seg-small { grid-template-columns: auto auto; }
 /* Fuoco visibile anche dentro i selettori con angoli ritagliati. */
 .segmented input:focus-visible + label { outline: 2px solid var(--ink); outline-offset: -4px; }
+.segmented input:checked:focus-visible + label { outline-color: var(--accent-ink); }
 .pf-none { margin: 0; padding: 14px 16px; border: 1px dashed var(--line); border-radius: var(--radius); color: var(--muted); }
 .seg-small label { padding: 6px 12px; font-size: var(--step--1); }
 .pf-custom { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: var(--step--1); color: var(--muted); }

@@ -808,7 +808,9 @@
     positions = positions.concat(added);
     savePositions();
     renderPortfolio();
-    setPfStatus(`Esempio caricato: ${added.length} BTP veri dall'elenco del MEF, con prezzi di esempio ricavati da rendimenti ipotetici fra il 2,6% e il 4,5%. Sostituiscili con i prezzi di mercato.`, 'info');
+    setPfStatus(added.length === 1
+      ? `Esempio: aggiunto ${added[0].label}, con un prezzo di esempio ricavato da un rendimento ipotetico. Sostituiscilo con il prezzo di mercato.`
+      : `Esempio caricato: ${added.length} BTP veri dall'elenco del MEF, con prezzi di esempio ricavati da rendimenti ipotetici fra il 2,6% e il 4,5%. Sostituiscili con i prezzi di mercato.`, 'info');
   }
 
   function openPosition(pos) {
@@ -845,12 +847,14 @@
     const nodes = ['pf-n2', 'pf-n10', 'pf-n30'].map((id) => {
       const raw = $(id).value.trim().replace(/\u2212/g, '-').replace(/\s*pb$/i, '');
       const v = raw === '' ? 0 : raw.includes('%') ? NaN : parseNum(raw);
-      $(id).setAttribute('aria-invalid', Number.isFinite(v) ? 'false' : 'true');
-      if (!Number.isFinite(v)) ok = false;
+      const valid = Number.isFinite(v) && Math.abs(v) <= 5000;
+      $(id).setAttribute('aria-invalid', valid ? 'false' : 'true');
+      if (!valid) ok = false;
       return v;
     });
     return ok ? nodes : null;
   }
+  const CURVE_WARNING = 'Curva personalizzata: scrivi gli spostamenti in punti base fra −5000 e 5000, ad esempio 25 o −25.';
   const beCell = (be, useNet) => {
     if (!be) return '–';
     const v = useNet ? be.net : be.gross;
@@ -920,12 +924,20 @@
     // Scenari
     const measure = pfMeasure();
     const custom = customNodes();
-    if (!custom) setPfStatus('Curva personalizzata: scrivi gli spostamenti in punti base, ad esempio 25 o −25.', 'warn');
+    if (!custom) setPfStatus(CURVE_WARNING, 'warn');
+    else if ($('pf-status').textContent === CURVE_WARNING) setPfStatus('', '');
     const scen = PF.SCENARIOS.slice();
     if (custom && custom.some((x) => x !== 0)) scen.push({ key: 'custom', label: 'Personalizzato', nodes: custom, curve: true });
     const cols = scen.map((sc) => (measure === 'now' ? PF.scenarioPnL(rows, sc.nodes) : PF.scenarioHorizon(rows, sc.nodes, 1, settlement)));
     const valueOf = (x) => (measure === 'now' ? x.pct : anyTax ? x.net : x.gross);
-    const best = cols.map((c) => (measure === '1y' && rows.length > 1 ? c.items.reduce((bi, x, i, a) => (valueOf(x) > valueOf(a[bi]) ? i : bi), 0) : -1));
+    const best = cols.map((c) => {
+      if (measure !== '1y' || rows.length < 2) return -1;
+      let bi = -1;
+      c.items.forEach((x, i) => {
+        if (Number.isFinite(valueOf(x)) && (bi < 0 || valueOf(x) > valueOf(c.items[bi]))) bi = i;
+      });
+      return bi;
+    });
     const cell = (x, isBest) => {
       const v = valueOf(x);
       const cls = v < 0 ? ' class="neg"' : '';
@@ -942,10 +954,15 @@
       'Negli scenari di curva lo spostamento è fissato a 2, 10 e 30 anni e interpolato sulla vita residua di ogni titolo: irripidimento −25, +25, +50 pb; appiattimento +25, 0, −25 pb.';
 
     // Incassi per anno
-    const cal = PF.cashflowCalendar(rows);
-    const tot = cal.reduce((s, e) => ({ g: s.g + e.couponsGross, n: s.n + e.couponsNet, r: s.r + e.redemptionsNet, t: s.t + e.couponsNet + e.redemptionsNet }), { g: 0, n: 0, r: 0, t: 0 });
+    // Importi arrotondati ai centesimi prima di sommarli, così righe e totali tornano.
+    const cents = (x) => Math.round(x * 100) / 100;
+    const cal = PF.cashflowCalendar(rows).map((e) => {
+      const g = cents(e.couponsGross), n = cents(e.couponsNet), r = cents(e.redemptionsNet);
+      return { year: e.year, g, n, r, hasR: e.redemptions > 0, t: cents(n + r) };
+    });
+    const tot = cal.reduce((s, e) => ({ g: cents(s.g + e.g), n: cents(s.n + e.n), r: cents(s.r + e.r), t: cents(s.t + e.t) }), { g: 0, n: 0, r: 0, t: 0 });
     $('pf-cal').querySelector('tbody').innerHTML = cal
-      .map((e) => `<tr><td>${e.year}</td><td>${num(e.couponsGross, 2)}</td><td>${num(e.couponsNet, 2)}</td><td>${e.redemptions ? num(e.redemptionsNet, 2) : ''}</td><td>${num(e.couponsNet + e.redemptionsNet, 2)}</td></tr>`)
+      .map((e) => `<tr><td>${e.year}</td><td>${num(e.g, 2)}</td><td>${num(e.n, 2)}</td><td>${e.hasR ? num(e.r, 2) : ''}</td><td>${num(e.t, 2)}</td></tr>`)
       .join('');
     $('pf-cal').querySelector('tfoot').innerHTML = `<tr><td>Totale</td><td>${num(tot.g, 2)}</td><td>${num(tot.n, 2)}</td><td>${num(tot.r, 2)}</td><td>${num(tot.t, 2)}</td></tr>`;
   }
@@ -955,11 +972,20 @@
     const a = document.activeElement;
     const row = a && a.closest && a.closest('#pf-table tbody tr');
     const key = row && { id: row.dataset.id, field: a.dataset.field, action: a.dataset.action };
+    // Dopo un Tab il browser seleziona tutto il campo: la selezione va ripristinata,
+    // altrimenti ciò che si scrive si aggiunge al valore vecchio.
+    const whole = a && a.tagName === 'INPUT' && a.selectionStart === 0 && a.selectionEnd === a.value.length;
+    const caret = a && a.tagName === 'INPUT' ? [a.selectionStart, a.selectionEnd] : null;
     renderPortfolio();
     if (!key) return;
     const tr = [...$('pf-table').querySelectorAll('tbody tr')].find((t) => t.dataset.id === key.id);
     const target = tr && (key.field ? tr.querySelector(`[data-field="${key.field}"]`) : tr.querySelector(`[data-action="${key.action}"]`));
-    if (target) target.focus();
+    if (!target) return;
+    target.focus();
+    if (target.tagName === 'INPUT') {
+      if (whole) target.select();
+      else if (caret) target.setSelectionRange(Math.min(caret[0], target.value.length), Math.min(caret[1], target.value.length));
+    }
   }
 
   // Ricalcolo quando cambia la data di regolamento, anche se il calcolatore è in
@@ -1072,6 +1098,7 @@
       applyPreset(e.target.value);
       e.target.value = '';
       compute();
+      onSettlementInput();
     });
     document.querySelectorAll('input[name="mode"]').forEach((el) =>
       el.addEventListener('change', () => {
