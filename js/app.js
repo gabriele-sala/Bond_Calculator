@@ -277,6 +277,7 @@
     updateDock(r);
     drawRosette(b, input);
     renderImpacts(input, r);
+    renderBreakEven(input, r);
     renderScenarios(r);
     renderCashflows(input, r);
     drawChart();
@@ -381,6 +382,59 @@
         const euro = Q * (s.dirty - r.dirty);
         const cls = s.change < 0 ? ' neg' : '';
         return `<div class="impact"><span class="impact-shift">${s.bp > 0 ? '+' : '−'}${Math.abs(s.bp)} pb</span><span class="impact-value${cls}">${signed(s.change * 100, 1)}%</span><span class="impact-euro${cls}">${euro < 0 ? '−' : '+'}${num(Math.abs(euro), 0)} €</span></div>`;
+      })
+      .join('');
+  }
+
+  // Durata leggibile fra due date: "1 anno e 7 mesi", "8 mesi", "12 giorni".
+  function spanIt(from, to) {
+    const days = B.actualDays(from, to);
+    if (days < 45) return days === 1 ? '1 giorno' : days + ' giorni';
+    const months = Math.round(days / 30.4375);
+    const y = Math.floor(months / 12), m = months % 12;
+    const ys = y ? (y === 1 ? '1 anno' : y + ' anni') : '';
+    const ms = m ? (m === 1 ? '1 mese' : m + ' mesi') : '';
+    return ys && ms ? ys + ' e ' + ms : ys || ms;
+  }
+
+  const bpIt = (d) => (d > 0 ? '+' : d < 0 ? '−' : '') + num(Math.abs(d) * 1e4, 0) + ' pb';
+
+  // Rialzo di pareggio a 1 e 3 anni e tempi di recupero dopo un rialzo improvviso.
+  function renderBreakEven(input, r) {
+    const b = r.bond;
+    const opts = { nominal: input.nominal, cleanPrice: r.clean, taxRate: input.taxRate, commission: input.commission, stampDuty: input.stampDuty };
+    const showNet = input.taxRate > 0 || input.commission > 0 || input.stampDuty;
+    $('breakeven').innerHTML = [1, 3]
+      .map((years) => {
+        const label = years === 1 ? 'Fra 1 anno' : 'Fra 3 anni';
+        const be = B.breakEvenShift(b, opts, r.ytm, years);
+        if (!be) return `<div class="be"><span class="be-label">${label}</span><span class="be-value">–</span><span class="be-sub">Il titolo scade prima.</span></div>`;
+        const main = showNet ? be.net : be.gross;
+        let value, sub;
+        if (main === Infinity) {
+          value = 'oltre +10.000 pb';
+          sub = 'Le cedole coprono qualsiasi rialzo realistico.';
+        } else if (main === -Infinity) {
+          value = 'nessun margine';
+          sub = 'Anche a rendimenti invariati non recuperi i costi entro questa data.';
+        } else {
+          const level = B.nominalToEffective(r.ytm + main, b.freq);
+          value = bpIt(main);
+          sub = `Sei in pari finché il rendimento non supera il <b>${pct(level, 2)}</b>` +
+            (showNet && Number.isFinite(be.gross) ? `. Al lordo: ${bpIt(be.gross)}.` : '.');
+        }
+        return `<div class="be"><span class="be-label">${label}${showNet ? ', netto stimato' : ''}</span><span class="be-value">${value}</span><span class="be-sub">${sub}</span></div>`;
+      })
+      .join('');
+
+    const Q = input.nominal / 100;
+    const settle = b.params.settlement;
+    $('recovery').querySelector('tbody').innerHTML = B.scenarios(b, r.ytm, [50, 100, 200])
+      .map((s) => {
+        const rec = B.recoveryTime(b, opts, r.ytm, s.bp / 1e4);
+        const cell = (x) => (x ? (x.years === 0 ? 'subito' : spanIt(settle, x.date)) : 'non entro la scadenza');
+        const loss = Q * (s.dirty - r.dirty);
+        return `<tr><td>+${s.bp} pb</td><td><span class="neg">${signed(s.change * 100, 2)}% (−${num(Math.abs(loss), 0)} €)</span></td><td>${cell(rec.gross)}</td><td>${showNet ? cell(rec.net) : cell(rec.gross)}</td></tr>`;
       })
       .join('');
   }

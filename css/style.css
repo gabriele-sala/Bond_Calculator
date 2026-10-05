@@ -577,6 +577,27 @@ summary { cursor: pointer; font-weight: 500; }
 }
 .estimate-note strong { color: var(--ink); font-weight: 600; }
 
+/* Rialzo di pareggio */
+.breakeven {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 520px) { .breakeven { grid-template-columns: minmax(0, 1fr); } }
+.be {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+.be-label { font-size: var(--step--1); color: var(--muted); }
+.be-value { font-family: var(--font-display); font-size: var(--step-3); line-height: 1.05; font-variant-numeric: tabular-nums lining-nums; }
+.be-sub { font-size: var(--step--1); color: var(--muted); }
+.be-sub b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
 /* Variazioni di prezzo in evidenza sopra il grafico */
 .impacts {
   display: grid;
