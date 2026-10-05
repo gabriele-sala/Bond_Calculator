@@ -200,7 +200,7 @@
             <span class="sub" id="r-ytm">–</span>
           </div>
           <div class="figure">
-            <span class="label">Rendimento netto</span>
+            <span class="label">Rendimento netto stimato</span>
             <span class="value" id="r-net">–</span>
             <span class="sub" id="r-net-sub">–</span>
           </div>
@@ -222,22 +222,19 @@
             <span class="hint">Rendimento effettivo annuo</span>
           </div>
           <div class="waterfall" id="waterfall"></div>
-        </div>
-
-        <div class="panel">
-          <h2>Dettaglio</h2>
-          <div class="fact-groups" id="facts"></div>
+          <p class="estimate-note" id="netto-nota"><strong>È una stima.</strong> Vale per il regime amministrato, con il titolo comprato oggi a questo prezzo e tenuto fino alla scadenza. Il rendimento davvero ottenuto può essere diverso se sei in regime dichiarativo o gestito, se il tuo prezzo di carico è diverso, se puoi compensare minusvalenze o plusvalenze, o se il titolo è stato emesso sotto la pari (disaggio di emissione).</p>
         </div>
 
         <div class="panel">
           <div class="panel-head">
-            <h2>Prezzo e rendimento</h2>
-            <ul class="legend">
-              <li><span class="key key-curve"></span>Prezzo secco effettivo</li>
-              <li><span class="key key-dur"></span>Stima con la duration</li>
-            </ul>
+            <h2>Se i rendimenti cambiano</h2>
           </div>
-          <p class="hint">La distanza fra le due linee è la convessità: a grandi variazioni di rendimento la duration da sola sbaglia il prezzo.</p>
+          <div class="impacts" id="impacts"></div>
+          <p class="hint">Variazione immediata del prezzo tel quel se il rendimento del titolo sale o scende. Nel grafico, la distanza fra le due linee è la convessità: a grandi variazioni di rendimento la duration da sola sbaglia il prezzo.</p>
+          <ul class="legend">
+            <li><span class="key key-curve"></span>Prezzo secco effettivo</li>
+            <li><span class="key key-dur"></span>Stima con la duration</li>
+          </ul>
           <div class="chart" id="chart"></div>
           <div class="scroll">
             <table class="data" id="scenarios">
@@ -248,6 +245,11 @@
               <tbody></tbody>
             </table>
           </div>
+        </div>
+
+        <div class="panel">
+          <h2>Dettaglio</h2>
+          <div class="fact-groups" id="facts"></div>
         </div>
 
         <div class="panel">
@@ -290,7 +292,7 @@
         <p>Le date cedola sono ricavate a ritroso dalla scadenza, con la regola di fine mese. Il rateo è <span class="mono">cedola/f × A/E</span>, con giorni maturati e lunghezza del periodo secondo la convenzione scelta. I titoli di Stato italiani usano ACT/ACT. Si assume un primo periodo cedolare regolare.</p>
       </div>
       <div>
-        <h3>Rendimento netto</h3>
+        <h3>Rendimento netto stimato</h3>
         <p>Stima per il regime amministrato. La ritenuta colpisce le cedole; sulla prima cedola solo la parte maturata dopo l'acquisto, perché il rateo pagato al venditore viene scomputato. A scadenza si tassa la plusvalenza fra rimborso e prezzo secco più commissioni. Le minusvalenze non danno credito d'imposta. Non considera il disaggio di emissione.</p>
       </div>
       <div>

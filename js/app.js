@@ -9,12 +9,12 @@
 
   const nf = (min, max) => new Intl.NumberFormat('it-IT', { minimumFractionDigits: min, maximumFractionDigits: max });
   const fmt = {};
-  [0, 2, 3, 4, 6].forEach((d) => (fmt[d] = nf(d, d)));
+  [0, 1, 2, 3, 4, 6].forEach((d) => (fmt[d] = nf(d, d)));
   const upTo2 = nf(0, 2);
   const num = (x, d = 2) => (Number.isFinite(x) ? fmt[d].format(x) : '–');
   const pct = (x, d = 3) => (Number.isFinite(x) ? fmt[d].format(x * 100) + '%' : '–');
   const eur = (x) => (Number.isFinite(x) ? fmt[2].format(x) + ' €' : '–');
-  const signed = (x, d = 2) => (x > 0 ? '+' : '') + num(x, d);
+  const signed = (x, d = 2) => (x > 0 ? '+' : x < 0 ? '−' : '') + num(Math.abs(x), d);
   const dateIt = new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
   const fdate = (dt) => dateIt.format(dt);
   const FREQ_LABEL = { 1: 'annuale', 2: 'semestrale', 4: 'trimestrale', 12: 'mensile' };
@@ -237,7 +237,7 @@
       ['Rendimento corrente', pct(r.currentYield)],
       ['YTM nominale (' + FREQ_LABEL[f] + ')', pct(r.ytm, 4)],
       ['Rendimento effettivo lordo', pct(r.ytmEffective, 4)],
-      ['Rendimento effettivo netto', pct(inv.effective, 4)],
+      ['Rendimento netto stimato', pct(inv.effective, 4)],
     ];
     if (r.callError) yieldFacts.push(['Yield to call', r.callError]);
     else if (Number.isFinite(r.ytc)) {
@@ -276,6 +276,7 @@
     renderWaterfall(input, r);
     updateDock(r);
     drawRosette(b, input);
+    renderImpacts(input, r);
     renderScenarios(r);
     renderCashflows(input, r);
     drawChart();
@@ -294,7 +295,7 @@
       { kind: 'cut', label: 'Imposte', note: input.taxRate > 0 ? 'aliquota ' + upTo2.format(input.taxRate * 100) + '%' : 'nessuna', on: input.taxRate > 0, from: afterTax, to: gross },
       { kind: 'cut', label: 'Commissioni', note: input.commission > 0 ? eur(input.commission) : 'nessuna', on: input.commission > 0, from: afterComm, to: afterTax },
       { kind: 'cut', label: 'Imposta di bollo', note: input.stampDuty ? '0,20% annuo' : 'non inclusa', on: input.stampDuty, from: net, to: afterComm },
-      { kind: 'total', label: 'Rendimento netto', from: 0, to: net, text: pct(net) },
+      { kind: 'total', label: 'Rendimento netto stimato', from: 0, to: net, text: pct(net) },
     ];
     const lo = Math.min(0, gross, net, afterTax, afterComm);
     const hi = Math.max(0, gross, net, afterTax, afterComm) || 1;
@@ -369,6 +370,19 @@
   function redrawRosette() {
     rosetteKey = '';
     if (last) drawRosette(last.result.bond, last.input);
+  }
+
+  // Variazioni di prezzo in evidenza sopra il grafico.
+  function renderImpacts(input, r) {
+    const Q = input.nominal / 100;
+    const rows = B.scenarios(r.bond, r.ytm, [100, 200, -100]);
+    $('impacts').innerHTML = rows
+      .map((s) => {
+        const euro = Q * (s.dirty - r.dirty);
+        const cls = s.change < 0 ? ' neg' : '';
+        return `<div class="impact"><span class="impact-shift">${s.bp > 0 ? '+' : '−'}${Math.abs(s.bp)} pb</span><span class="impact-value${cls}">${signed(s.change * 100, 1)}%</span><span class="impact-euro${cls}">${euro < 0 ? '−' : '+'}${num(Math.abs(euro), 0)} €</span></div>`;
+      })
+      .join('');
   }
 
   function renderScenarios(r) {
