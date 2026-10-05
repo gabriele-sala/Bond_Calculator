@@ -515,6 +515,8 @@
   const Isin = window.Isin;
   const CONFIG = window.BOND_CONFIG || {};
   const timeIt = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Rome' });
+  const longDateIt = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const longDate = (iso) => longDateIt.format(B.parseDate(iso));
   let catalogPromise = null;
 
   function loadCatalog() {
@@ -524,7 +526,14 @@
           if (!res.ok) throw new Error('HTTP ' + res.status);
           return res.json();
         })
-        .then((data) => ({ map: Isin.indexCatalog(data), updated: data.aggiornato || null }))
+        .then((data) => {
+          const catalog = { map: Isin.indexCatalog(data), updated: data.aggiornato || null };
+          if (catalog.updated) {
+            $('isin-source').textContent = 'Elenco titoli di Stato del MEF, aggiornato al ' + longDate(catalog.updated) + '.';
+            $('isin-source').hidden = false;
+          }
+          return catalog;
+        })
         .catch((e) => {
           catalogPromise = null;
           throw e;
@@ -570,7 +579,7 @@
       updatePriceLink(t && t.tipo);
       if (!t) {
         setIsinStatus(code.startsWith('IT')
-          ? 'Titolo non trovato fra i titoli di Stato in circolazione. Per altre obbligazioni inserisci i dati a mano.'
+          ? 'Titolo non trovato fra i titoli di Stato in circolazione' + (catalog.updated ? ' al ' + longDate(catalog.updated) : '') + '. Il MEF aggiorna l\'elenco una volta al mese, quindi le emissioni più recenti arrivano dopo. Per altre obbligazioni inserisci i dati a mano.'
           : 'La ricerca copre i titoli di Stato italiani. Per questa obbligazione inserisci i dati a mano.', 'info');
         return;
       }
@@ -636,6 +645,7 @@
       save();
     });
     updatePriceLink();
+    loadCatalog().catch(() => { /* segnalato alla prima ricerca */ });
 
     $('preset').addEventListener('change', (e) => {
       $('isin').value = '';

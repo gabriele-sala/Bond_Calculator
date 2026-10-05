@@ -18,7 +18,8 @@ In cima al modulo si può cercare un titolo di Stato italiano per ISIN: cedola, 
 
 - Codice ISIN verificato con la cifra di controllo (ISO 6166).
 - Gestiti: BTP, BTP Green, BTP Short Term, BOT e CTZ. CCTeu, BTP Italia, BTP€i, BTP Valore, BTP Più e BTP Futura vengono riconosciuti ma non calcolati (cedola variabile, indicizzata o crescente).
-- L'elenco è letto da `data/titoli-stato.json`.
+- L'elenco (`data/titoli-stato.json`) viene dal file mensile "Scadenze suddivise per anno" del [MEF - Dipartimento del Tesoro](https://www.dt.mef.gov.it/it/debito_pubblico/dati_statistici/scadenze_titoli_suddivise_anno/). Il workflow `update-data.yml` lo controlla ogni lunedì e, se è cambiato, salva il nuovo elenco e ripubblica il sito. Per aggiornarlo a mano: `node scripts/update-titoli-stato.js`.
+- Le note legali del sito del Tesoro consentono il riuso non commerciale citando la fonte; per un uso a fini di lucro serve il loro permesso scritto.
 
 ### Collegare un servizio prezzi
 

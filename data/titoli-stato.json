@@ -1,0 +1,1474 @@
+{
+ "fonte": "MEF - Dipartimento del Tesoro, \"Scadenze suddivise per anno\"",
+ "url": "https://www.dt.mef.gov.it/export/sites/sitodt/modules/documenti_it/debito_pubblico/scadenze_titoli_suddivise_per_anno/Scadenze-suddivise-per-anno-aggiornamento-al-31-agosto-2026.csv",
+ "aggiornato": "2026-08-31",
+ "titoli": [
+  {
+   "isin": "IT0005669269",
+   "descrizione": "BOT 14/09/2026",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2025-09-12",
+   "scadenza": "2026-09-14"
+  },
+  {
+   "isin": "IT0004735152",
+   "descrizione": "BTP€i 15/09/2026",
+   "tipo": "BTP€i",
+   "cedola": 3.1,
+   "frequenza": null,
+   "emissione": "2011-03-15",
+   "scadenza": "2026-09-15"
+  },
+  {
+   "isin": "IT0005556011",
+   "descrizione": "BTP 3,85% 15/09/2026",
+   "tipo": "BTP",
+   "cedola": 3.85,
+   "frequenza": 2,
+   "emissione": "2023-07-17",
+   "scadenza": "2026-09-15"
+  },
+  {
+   "isin": "IT0005702656",
+   "descrizione": "BOT 30/09/2026",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-03-31",
+   "scadenza": "2026-09-30"
+  },
+  {
+   "isin": "IT0005674335",
+   "descrizione": "BOT 14/10/2026",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2025-10-14",
+   "scadenza": "2026-10-14"
+  },
+  {
+   "isin": "IT0001086567",
+   "descrizione": "BTP 7,25% 01/11/2026",
+   "tipo": "BTP",
+   "cedola": 7.25,
+   "frequenza": 2,
+   "emissione": "1996-11-01",
+   "scadenza": "2026-11-01"
+  },
+  {
+   "isin": "IT0005678492",
+   "descrizione": "BOT 13/11/2026",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2025-11-14",
+   "scadenza": "2026-11-13"
+  },
+  {
+   "isin": "IT0005711749",
+   "descrizione": "BOT 30/11/2026",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-05-29",
+   "scadenza": "2026-11-30"
+  },
+  {
+   "isin": "IT0005210650",
+   "descrizione": "BTP 1,25% 01/12/2026",
+   "tipo": "BTP",
+   "cedola": 1.25,
+   "frequenza": 2,
+   "emissione": "2016-08-01",
+   "scadenza": "2026-12-01"
+  },
+  {
+   "isin": "IT0005684888",
+   "descrizione": "BOT 14/12/2026",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2025-12-12",
+   "scadenza": "2026-12-14"
+  },
+  {
+   "isin": "IT0005719536",
+   "descrizione": "BOT 31/12/2026",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-06-30",
+   "scadenza": "2026-12-31"
+  },
+  {
+   "isin": "IT0005689887",
+   "descrizione": "BOT 14/01/2027",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-01-14",
+   "scadenza": "2027-01-14"
+  },
+  {
+   "isin": "IT0005390874",
+   "descrizione": "BTP 0,85% 15/01/2027",
+   "tipo": "BTP",
+   "cedola": 0.85,
+   "frequenza": 2,
+   "emissione": "2019-11-15",
+   "scadenza": "2027-01-15"
+  },
+  {
+   "isin": "IT0005725236",
+   "descrizione": "BOT 29/01/2027",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-07-31",
+   "scadenza": "2027-01-29"
+  },
+  {
+   "isin": "IT0005695256",
+   "descrizione": "BOT 12/02/2027",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-02-13",
+   "scadenza": "2027-02-12"
+  },
+  {
+   "isin": "IT0005580045",
+   "descrizione": "BTP 2,95% 15/02/2027",
+   "tipo": "BTP",
+   "cedola": 2.95,
+   "frequenza": 2,
+   "emissione": "2024-01-15",
+   "scadenza": "2027-02-15"
+  },
+  {
+   "isin": "IT0005633794",
+   "descrizione": "BTP Short Term 2,55% 25/02/2027",
+   "tipo": "BTP Short Term",
+   "cedola": 2.55,
+   "frequenza": 2,
+   "emissione": "2025-01-30",
+   "scadenza": "2027-02-25"
+  },
+  {
+   "isin": "IT0005699340",
+   "descrizione": "BOT 12/03/2027",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-03-13",
+   "scadenza": "2027-03-12"
+  },
+  {
+   "isin": "IT0005484552",
+   "descrizione": "BTP 1,1% 01/04/2027",
+   "tipo": "BTP",
+   "cedola": 1.1,
+   "frequenza": 2,
+   "emissione": "2022-03-01",
+   "scadenza": "2027-04-01"
+  },
+  {
+   "isin": "IT0005704447",
+   "descrizione": "BOT 14/04/2027",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-04-14",
+   "scadenza": "2027-04-14"
+  },
+  {
+   "isin": "IT0005709289",
+   "descrizione": "BOT 14/05/2027",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-05-14",
+   "scadenza": "2027-05-14"
+  },
+  {
+   "isin": "IT0005240830",
+   "descrizione": "BTP 2,2% 01/06/2027",
+   "tipo": "BTP",
+   "cedola": 2.2,
+   "frequenza": 2,
+   "emissione": "2017-02-01",
+   "scadenza": "2027-06-01"
+  },
+  {
+   "isin": "IT0005547390",
+   "descrizione": "BTP Valore 13/06/2027",
+   "tipo": "BTP Valore",
+   "cedola": 3.25,
+   "frequenza": null,
+   "emissione": "2023-06-13",
+   "scadenza": "2027-06-13"
+  },
+  {
+   "isin": "IT0005716714",
+   "descrizione": "BOT 14/06/2027",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-06-12",
+   "scadenza": "2027-06-14"
+  },
+  {
+   "isin": "IT0005722514",
+   "descrizione": "BOT 14/07/2027",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-07-14",
+   "scadenza": "2027-07-14"
+  },
+  {
+   "isin": "IT0005599904",
+   "descrizione": "BTP 3,2% 15/07/2027",
+   "tipo": "BTP",
+   "cedola": 3.2,
+   "frequenza": 2,
+   "emissione": "2024-06-17",
+   "scadenza": "2027-07-15"
+  },
+  {
+   "isin": "IT0005274805",
+   "descrizione": "BTP 2,05% 01/08/2027",
+   "tipo": "BTP",
+   "cedola": 2.05,
+   "frequenza": 2,
+   "emissione": "2017-07-04",
+   "scadenza": "2027-08-01"
+  },
+  {
+   "isin": "IT0005729220",
+   "descrizione": "BOT 13/08/2027",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-08-14",
+   "scadenza": "2027-08-13"
+  },
+  {
+   "isin": "IT0005657330",
+   "descrizione": "BTP Short Term 2,1% 26/08/2027",
+   "tipo": "BTP Short Term",
+   "cedola": 2.1,
+   "frequenza": 2,
+   "emissione": "2025-06-27",
+   "scadenza": "2027-08-26"
+  },
+  {
+   "isin": "IT0005416570",
+   "descrizione": "BTP 0,95% 15/09/2027",
+   "tipo": "BTP",
+   "cedola": 0.95,
+   "frequenza": 2,
+   "emissione": "2020-07-16",
+   "scadenza": "2027-09-15"
+  },
+  {
+   "isin": "IT0005622128",
+   "descrizione": "BTP 2,7% 15/10/2027",
+   "tipo": "BTP",
+   "cedola": 2.7,
+   "frequenza": 2,
+   "emissione": "2024-11-15",
+   "scadenza": "2027-10-15"
+  },
+  {
+   "isin": "IT0005388167",
+   "descrizione": "BTP Italia 28/10/2027",
+   "tipo": "BTP Italia",
+   "cedola": 0.65,
+   "frequenza": null,
+   "emissione": "2019-10-28",
+   "scadenza": "2027-10-28"
+  },
+  {
+   "isin": "IT0001174611",
+   "descrizione": "BTP 6,5% 01/11/2027",
+   "tipo": "BTP",
+   "cedola": 6.5,
+   "frequenza": 2,
+   "emissione": "1997-11-01",
+   "scadenza": "2027-11-01"
+  },
+  {
+   "isin": "IT0005500068",
+   "descrizione": "BTP 2,65% 01/12/2027",
+   "tipo": "BTP",
+   "cedola": 2.65,
+   "frequenza": 2,
+   "emissione": "2022-07-04",
+   "scadenza": "2027-12-01"
+  },
+  {
+   "isin": "IT0005323032",
+   "descrizione": "BTP 2% 01/02/2028",
+   "tipo": "BTP",
+   "cedola": 2,
+   "frequenza": 2,
+   "emissione": "2018-02-01",
+   "scadenza": "2028-02-01"
+  },
+  {
+   "isin": "IT0005692410",
+   "descrizione": "BTP Short Term 2,2% 28/02/2028",
+   "tipo": "BTP Short Term",
+   "cedola": 2.2,
+   "frequenza": 2,
+   "emissione": "2026-01-29",
+   "scadenza": "2028-02-28"
+  },
+  {
+   "isin": "IT0005532715",
+   "descrizione": "BTP Italia 14/03/2028",
+   "tipo": "BTP Italia",
+   "cedola": 2,
+   "frequenza": null,
+   "emissione": "2023-03-14",
+   "scadenza": "2028-03-14"
+  },
+  {
+   "isin": "IT0005433690",
+   "descrizione": "BTP 0,25% 15/03/2028",
+   "tipo": "BTP",
+   "cedola": 0.25,
+   "frequenza": 2,
+   "emissione": "2021-01-18",
+   "scadenza": "2028-03-15"
+  },
+  {
+   "isin": "IT0005521981",
+   "descrizione": "BTP 3,4% 01/04/2028",
+   "tipo": "BTP",
+   "cedola": 3.4,
+   "frequenza": 2,
+   "emissione": "2022-11-30",
+   "scadenza": "2028-04-01"
+  },
+  {
+   "isin": "IT0005246134",
+   "descrizione": "BTP€i 15/05/2028",
+   "tipo": "BTP€i",
+   "cedola": 1.3,
+   "frequenza": null,
+   "emissione": "2016-11-15",
+   "scadenza": "2028-05-15"
+  },
+  {
+   "isin": "IT0005641029",
+   "descrizione": "BTP 2,65% 15/06/2028",
+   "tipo": "BTP",
+   "cedola": 2.65,
+   "frequenza": 2,
+   "emissione": "2025-03-17",
+   "scadenza": "2028-06-15"
+  },
+  {
+   "isin": "IT0005445306",
+   "descrizione": "BTP 0,5% 15/07/2028",
+   "tipo": "BTP",
+   "cedola": 0.5,
+   "frequenza": 2,
+   "emissione": "2021-05-17",
+   "scadenza": "2028-07-15"
+  },
+  {
+   "isin": "IT0005548315",
+   "descrizione": "BTP 3,8% 01/08/2028",
+   "tipo": "BTP",
+   "cedola": 3.8,
+   "frequenza": 2,
+   "emissione": "2023-06-01",
+   "scadenza": "2028-08-01"
+  },
+  {
+   "isin": "IT0004889033",
+   "descrizione": "BTP 4,75% 01/09/2028",
+   "tipo": "BTP",
+   "cedola": 4.75,
+   "frequenza": 2,
+   "emissione": "2013-01-22",
+   "scadenza": "2028-09-01"
+  },
+  {
+   "isin": "IT0005565392",
+   "descrizione": "BTP Valore 10/10/2028",
+   "tipo": "BTP Valore",
+   "cedola": 4.1,
+   "frequenza": null,
+   "emissione": "2023-10-10",
+   "scadenza": "2028-10-10"
+  },
+  {
+   "isin": "IT0005534984",
+   "descrizione": "CCTeu 15/10/2028",
+   "tipo": "CCTeu",
+   "cedola": null,
+   "frequenza": null,
+   "emissione": "2022-10-15",
+   "scadenza": "2028-10-15"
+  },
+  {
+   "isin": "IT0005729733",
+   "descrizione": "BTP Short Term 3% 30/10/2028",
+   "tipo": "BTP Short Term",
+   "cedola": 3,
+   "frequenza": 2,
+   "emissione": "2026-08-28",
+   "scadenza": "2028-10-30"
+  },
+  {
+   "isin": "IT0005425753",
+   "descrizione": "BTP Futura 17/11/2028",
+   "tipo": "BTP Futura",
+   "cedola": 0.35,
+   "frequenza": null,
+   "emissione": "2020-11-17",
+   "scadenza": "2028-11-17"
+  },
+  {
+   "isin": "IT0005517187",
+   "descrizione": "BTP Italia 22/11/2028",
+   "tipo": "BTP Italia",
+   "cedola": 1.6,
+   "frequenza": null,
+   "emissione": "2022-11-22",
+   "scadenza": "2028-11-22"
+  },
+  {
+   "isin": "IT0005340929",
+   "descrizione": "BTP 2,8% 01/12/2028",
+   "tipo": "BTP",
+   "cedola": 2.8,
+   "frequenza": 2,
+   "emissione": "2018-08-01",
+   "scadenza": "2028-12-01"
+  },
+  {
+   "isin": "IT0005660052",
+   "descrizione": "BTP 2,35% 15/01/2029",
+   "tipo": "BTP",
+   "cedola": 2.35,
+   "frequenza": 2,
+   "emissione": "2025-07-15",
+   "scadenza": "2029-01-15"
+  },
+  {
+   "isin": "IT0005566408",
+   "descrizione": "BTP 4,1% 01/02/2029",
+   "tipo": "BTP",
+   "cedola": 4.1,
+   "frequenza": 2,
+   "emissione": "2023-10-02",
+   "scadenza": "2029-02-01"
+  },
+  {
+   "isin": "IT0005467482",
+   "descrizione": "BTP 0,45% 15/02/2029",
+   "tipo": "BTP",
+   "cedola": 0.45,
+   "frequenza": 2,
+   "emissione": "2021-11-15",
+   "scadenza": "2029-02-15"
+  },
+  {
+   "isin": "IT0005689960",
+   "descrizione": "BTP 2,4% 15/03/2029",
+   "tipo": "BTP",
+   "cedola": 2.4,
+   "frequenza": 2,
+   "emissione": "2026-01-15",
+   "scadenza": "2029-03-15"
+  },
+  {
+   "isin": "IT0005451361",
+   "descrizione": "CCTeu 15/04/2029",
+   "tipo": "CCTeu",
+   "cedola": null,
+   "frequenza": null,
+   "emissione": "2021-04-15",
+   "scadenza": "2029-04-15"
+  },
+  {
+   "isin": "IT0005543803",
+   "descrizione": "BTP€i 15/05/2029",
+   "tipo": "BTP€i",
+   "cedola": 1.5,
+   "frequenza": null,
+   "emissione": "2023-04-26",
+   "scadenza": "2029-05-15"
+  },
+  {
+   "isin": "IT0005495731",
+   "descrizione": "BTP 2,8% 15/06/2029",
+   "tipo": "BTP",
+   "cedola": 2.8,
+   "frequenza": 2,
+   "emissione": "2022-05-16",
+   "scadenza": "2029-06-15"
+  },
+  {
+   "isin": "IT0005584849",
+   "descrizione": "BTP 3,35% 01/07/2029",
+   "tipo": "BTP",
+   "cedola": 3.35,
+   "frequenza": 2,
+   "emissione": "2024-03-01",
+   "scadenza": "2029-07-01"
+  },
+  {
+   "isin": "IT0005365165",
+   "descrizione": "BTP 3% 01/08/2029",
+   "tipo": "BTP",
+   "cedola": 3,
+   "frequenza": 2,
+   "emissione": "2019-02-01",
+   "scadenza": "2029-08-01"
+  },
+  {
+   "isin": "IT0005716839",
+   "descrizione": "BTP 3% 15/09/2029",
+   "tipo": "BTP",
+   "cedola": 3,
+   "frequenza": 2,
+   "emissione": "2026-06-15",
+   "scadenza": "2029-09-15"
+  },
+  {
+   "isin": "IT0005611055",
+   "descrizione": "BTP 3% 01/10/2029",
+   "tipo": "BTP",
+   "cedola": 3,
+   "frequenza": 2,
+   "emissione": "2024-09-02",
+   "scadenza": "2029-10-01"
+  },
+  {
+   "isin": "IT0001278511",
+   "descrizione": "BTP 5,25% 01/11/2029",
+   "tipo": "BTP",
+   "cedola": 5.25,
+   "frequenza": 2,
+   "emissione": "1998-11-01",
+   "scadenza": "2029-11-01"
+  },
+  {
+   "isin": "IT0005519787",
+   "descrizione": "BTP 3,85% 15/12/2029",
+   "tipo": "BTP",
+   "cedola": 3.85,
+   "frequenza": 2,
+   "emissione": "2022-11-15",
+   "scadenza": "2029-12-15"
+  },
+  {
+   "isin": "IT0005024234",
+   "descrizione": "BTP 3,5% 01/03/2030",
+   "tipo": "BTP",
+   "cedola": 3.5,
+   "frequenza": 2,
+   "emissione": "2014-03-01",
+   "scadenza": "2030-03-01"
+  },
+  {
+   "isin": "IT0005583478",
+   "descrizione": "BTP Valore 05/03/2030",
+   "tipo": "BTP Valore",
+   "cedola": 3.25,
+   "frequenza": null,
+   "emissione": "2024-03-05",
+   "scadenza": "2030-03-05"
+  },
+  {
+   "isin": "IT0005383309",
+   "descrizione": "BTP 1,35% 01/04/2030",
+   "tipo": "BTP",
+   "cedola": 1.35,
+   "frequenza": 2,
+   "emissione": "2019-09-01",
+   "scadenza": "2030-04-01"
+  },
+  {
+   "isin": "IT0005594491",
+   "descrizione": "BTP Valore 14/05/2030",
+   "tipo": "BTP Valore",
+   "cedola": 3.35,
+   "frequenza": null,
+   "emissione": "2024-05-14",
+   "scadenza": "2030-05-14"
+  },
+  {
+   "isin": "IT0005387052",
+   "descrizione": "BTP€i 15/05/2030",
+   "tipo": "BTP€i",
+   "cedola": 0.4,
+   "frequenza": null,
+   "emissione": "2019-05-15",
+   "scadenza": "2030-05-15"
+  },
+  {
+   "isin": "IT0005542797",
+   "descrizione": "BTP 3,7% 15/06/2030",
+   "tipo": "BTP",
+   "cedola": 3.7,
+   "frequenza": 2,
+   "emissione": "2023-04-17",
+   "scadenza": "2030-06-15"
+  },
+  {
+   "isin": "IT0005496994",
+   "descrizione": "BTP Italia 28/06/2030",
+   "tipo": "BTP Italia",
+   "cedola": 1.6,
+   "frequenza": null,
+   "emissione": "2022-06-28",
+   "scadenza": "2030-06-28"
+  },
+  {
+   "isin": "IT0005637399",
+   "descrizione": "BTP 2,95% 01/07/2030",
+   "tipo": "BTP",
+   "cedola": 2.95,
+   "frequenza": 2,
+   "emissione": "2025-03-03",
+   "scadenza": "2030-07-01"
+  },
+  {
+   "isin": "IT0005415283",
+   "descrizione": "BTP Futura 14/07/2030",
+   "tipo": "BTP Futura",
+   "cedola": 1.15,
+   "frequenza": null,
+   "emissione": "2020-07-14",
+   "scadenza": "2030-07-14"
+  },
+  {
+   "isin": "IT0005403396",
+   "descrizione": "BTP 0,95% 01/08/2030",
+   "tipo": "BTP",
+   "cedola": 0.95,
+   "frequenza": 2,
+   "emissione": "2020-03-01",
+   "scadenza": "2030-08-01"
+  },
+  {
+   "isin": "IT0005654642",
+   "descrizione": "BTP 2,7% 01/10/2030",
+   "tipo": "BTP",
+   "cedola": 2.7,
+   "frequenza": 2,
+   "emissione": "2025-06-11",
+   "scadenza": "2030-10-01"
+  },
+  {
+   "isin": "IT0005491250",
+   "descrizione": "CCTeu 15/10/2030",
+   "tipo": "CCTeu",
+   "cedola": null,
+   "frequenza": null,
+   "emissione": "2021-10-15",
+   "scadenza": "2030-10-15"
+  },
+  {
+   "isin": "IT0005561888",
+   "descrizione": "BTP 4% 15/11/2030",
+   "tipo": "BTP",
+   "cedola": 4,
+   "frequenza": 2,
+   "emissione": "2023-09-15",
+   "scadenza": "2030-11-15"
+  },
+  {
+   "isin": "IT0005413171",
+   "descrizione": "BTP 1,65% 01/12/2030",
+   "tipo": "BTP",
+   "cedola": 1.65,
+   "frequenza": 2,
+   "emissione": "2020-06-01",
+   "scadenza": "2030-12-01"
+  },
+  {
+   "isin": "IT0005671273",
+   "descrizione": "BTP 2,85% 01/02/2031",
+   "tipo": "BTP",
+   "cedola": 2.85,
+   "frequenza": 2,
+   "emissione": "2025-10-01",
+   "scadenza": "2031-02-01"
+  },
+  {
+   "isin": "IT0005580094",
+   "descrizione": "BTP 3,5% 15/02/2031",
+   "tipo": "BTP",
+   "cedola": 3.5,
+   "frequenza": 2,
+   "emissione": "2024-01-16",
+   "scadenza": "2031-02-15"
+  },
+  {
+   "isin": "IT0005422891",
+   "descrizione": "BTP 0,9% 01/04/2031",
+   "tipo": "BTP",
+   "cedola": 0.9,
+   "frequenza": 2,
+   "emissione": "2020-10-01",
+   "scadenza": "2031-04-01"
+  },
+  {
+   "isin": "IT0001444378",
+   "descrizione": "BTP 6% 01/05/2031",
+   "tipo": "BTP",
+   "cedola": 6,
+   "frequenza": 2,
+   "emissione": "1999-11-01",
+   "scadenza": "2031-05-01"
+  },
+  {
+   "isin": "IT0005707614",
+   "descrizione": "BTP 3,15% 01/06/2031",
+   "tipo": "BTP",
+   "cedola": 3.15,
+   "frequenza": 2,
+   "emissione": "2026-05-04",
+   "scadenza": "2031-06-01"
+  },
+  {
+   "isin": "IT0005713539",
+   "descrizione": "BTP Italia Sì 23/06/2031",
+   "tipo": "BTP Italia Sì",
+   "cedola": 1.6,
+   "frequenza": null,
+   "emissione": "2026-06-23",
+   "scadenza": "2031-06-23"
+  },
+  {
+   "isin": "IT0005595803",
+   "descrizione": "BTP 3,45% 15/07/2031",
+   "tipo": "BTP",
+   "cedola": 3.45,
+   "frequenza": 2,
+   "emissione": "2024-05-15",
+   "scadenza": "2031-07-15"
+  },
+  {
+   "isin": "IT0005436693",
+   "descrizione": "BTP 0,6% 01/08/2031",
+   "tipo": "BTP",
+   "cedola": 0.6,
+   "frequenza": 2,
+   "emissione": "2021-02-01",
+   "scadenza": "2031-08-01"
+  },
+  {
+   "isin": "IT0005657348",
+   "descrizione": "BTP€i 15/08/2031",
+   "tipo": "BTP€i",
+   "cedola": 1.1,
+   "frequenza": null,
+   "emissione": "2025-06-27",
+   "scadenza": "2031-08-15"
+  },
+  {
+   "isin": "IT0005554982",
+   "descrizione": "CCTeu 15/10/2031",
+   "tipo": "CCTeu",
+   "cedola": null,
+   "frequenza": null,
+   "emissione": "2023-04-15",
+   "scadenza": "2031-10-15"
+  },
+  {
+   "isin": "IT0005542359",
+   "descrizione": "BTP Green 4% 30/10/2031",
+   "tipo": "BTP Green",
+   "cedola": 4,
+   "frequenza": 2,
+   "emissione": "2023-04-13",
+   "scadenza": "2031-10-30"
+  },
+  {
+   "isin": "IT0005619546",
+   "descrizione": "BTP 3,15% 15/11/2031",
+   "tipo": "BTP",
+   "cedola": 3.15,
+   "frequenza": 2,
+   "emissione": "2024-10-29",
+   "scadenza": "2031-11-15"
+  },
+  {
+   "isin": "IT0005449969",
+   "descrizione": "BTP 0,95% 01/12/2031",
+   "tipo": "BTP",
+   "cedola": 0.95,
+   "frequenza": 2,
+   "emissione": "2021-06-01",
+   "scadenza": "2031-12-01"
+  },
+  {
+   "isin": "IT0005094088",
+   "descrizione": "BTP 1,65% 01/03/2032",
+   "tipo": "BTP",
+   "cedola": 1.65,
+   "frequenza": 2,
+   "emissione": "2015-03-01",
+   "scadenza": "2032-03-01"
+  },
+  {
+   "isin": "IT0005696320",
+   "descrizione": "BTP Valore 10/03/2032",
+   "tipo": "BTP Valore",
+   "cedola": 2.6,
+   "frequenza": null,
+   "emissione": "2026-03-10",
+   "scadenza": "2032-03-10"
+  },
+  {
+   "isin": "IT0005594467",
+   "descrizione": "CCTeu 15/04/2032",
+   "tipo": "CCTeu",
+   "cedola": null,
+   "frequenza": null,
+   "emissione": "2024-04-15",
+   "scadenza": "2032-04-15"
+  },
+  {
+   "isin": "IT0005466013",
+   "descrizione": "BTP 0,95% 01/06/2032",
+   "tipo": "BTP",
+   "cedola": 0.95,
+   "frequenza": 2,
+   "emissione": "2021-11-01",
+   "scadenza": "2032-06-01"
+  },
+  {
+   "isin": "IT0005648248",
+   "descrizione": "BTP Italia 04/06/2032",
+   "tipo": "BTP Italia",
+   "cedola": 1.85,
+   "frequenza": null,
+   "emissione": "2025-06-04",
+   "scadenza": "2032-06-04"
+  },
+  {
+   "isin": "IT0005647265",
+   "descrizione": "BTP 3,25% 15/07/2032",
+   "tipo": "BTP",
+   "cedola": 3.25,
+   "frequenza": 2,
+   "emissione": "2025-04-25",
+   "scadenza": "2032-07-15"
+  },
+  {
+   "isin": "IT0005138828",
+   "descrizione": "BTP€i 15/09/2032",
+   "tipo": "BTP€i",
+   "cedola": 1.25,
+   "frequenza": null,
+   "emissione": "2015-09-15",
+   "scadenza": "2032-09-15"
+  },
+  {
+   "isin": "IT0005672016",
+   "descrizione": "BTP Valore 28/10/2032",
+   "tipo": "BTP Valore",
+   "cedola": 2.6,
+   "frequenza": null,
+   "emissione": "2025-10-28",
+   "scadenza": "2032-10-28"
+  },
+  {
+   "isin": "IT0005668220",
+   "descrizione": "BTP 3,25% 15/11/2032",
+   "tipo": "BTP",
+   "cedola": 3.25,
+   "frequenza": 2,
+   "emissione": "2025-09-09",
+   "scadenza": "2032-11-15"
+  },
+  {
+   "isin": "IT0005494239",
+   "descrizione": "BTP 2,5% 01/12/2032",
+   "tipo": "BTP",
+   "cedola": 2.5,
+   "frequenza": 2,
+   "emissione": "2022-05-03",
+   "scadenza": "2032-12-01"
+  },
+  {
+   "isin": "IT0003256820",
+   "descrizione": "BTP 5,75% 01/02/2033",
+   "tipo": "BTP",
+   "cedola": 5.75,
+   "frequenza": 2,
+   "emissione": "2002-02-01",
+   "scadenza": "2033-02-01"
+  },
+  {
+   "isin": "IT0005634792",
+   "descrizione": "BTP Più 25/02/2033",
+   "tipo": "BTP Più",
+   "cedola": 2.85,
+   "frequenza": null,
+   "emissione": "2025-02-25",
+   "scadenza": "2033-02-25"
+  },
+  {
+   "isin": "IT0005689994",
+   "descrizione": "BTP 3,15% 15/03/2033",
+   "tipo": "BTP",
+   "cedola": 3.15,
+   "frequenza": 2,
+   "emissione": "2026-01-15",
+   "scadenza": "2033-03-15"
+  },
+  {
+   "isin": "IT0005620460",
+   "descrizione": "CCTeu 15/04/2033",
+   "tipo": "CCTeu",
+   "cedola": null,
+   "frequenza": null,
+   "emissione": "2024-10-15",
+   "scadenza": "2033-04-15"
+  },
+  {
+   "isin": "IT0005518128",
+   "descrizione": "BTP 4,4% 01/05/2033",
+   "tipo": "BTP",
+   "cedola": 4.4,
+   "frequenza": 2,
+   "emissione": "2022-11-01",
+   "scadenza": "2033-05-01"
+  },
+  {
+   "isin": "IT0005482994",
+   "descrizione": "BTP€i 15/05/2033",
+   "tipo": "BTP€i",
+   "cedola": 0.1,
+   "frequenza": null,
+   "emissione": "2021-11-15",
+   "scadenza": "2033-05-15"
+  },
+  {
+   "isin": "IT0005704868",
+   "descrizione": "BTP 3,3% 15/06/2033",
+   "tipo": "BTP",
+   "cedola": 3.3,
+   "frequenza": 2,
+   "emissione": "2026-04-15",
+   "scadenza": "2033-06-15"
+  },
+  {
+   "isin": "IT0005240350",
+   "descrizione": "BTP 2,45% 01/09/2033",
+   "tipo": "BTP",
+   "cedola": 2.45,
+   "frequenza": 2,
+   "emissione": "2016-09-01",
+   "scadenza": "2033-09-01"
+  },
+  {
+   "isin": "IT0005722845",
+   "descrizione": "BTP 3,35% 15/09/2033",
+   "tipo": "BTP",
+   "cedola": 3.35,
+   "frequenza": 2,
+   "emissione": "2026-07-15",
+   "scadenza": "2033-09-15"
+  },
+  {
+   "isin": "IT0005544082",
+   "descrizione": "BTP 4,35% 01/11/2033",
+   "tipo": "BTP",
+   "cedola": 4.35,
+   "frequenza": 2,
+   "emissione": "2023-05-02",
+   "scadenza": "2033-11-01"
+  },
+  {
+   "isin": "IT0005466344",
+   "descrizione": "BTP Futura 16/11/2033",
+   "tipo": "BTP Futura",
+   "cedola": 0.75,
+   "frequenza": null,
+   "emissione": "2021-11-16",
+   "scadenza": "2033-11-16"
+  },
+  {
+   "isin": "IT0005560948",
+   "descrizione": "BTP 4,2% 01/03/2034",
+   "tipo": "BTP",
+   "cedola": 4.2,
+   "frequenza": 2,
+   "emissione": "2023-09-01",
+   "scadenza": "2034-03-01"
+  },
+  {
+   "isin": "IT0005652828",
+   "descrizione": "CCTeu 15/04/2034",
+   "tipo": "CCTeu",
+   "cedola": null,
+   "frequenza": null,
+   "emissione": "2025-04-15",
+   "scadenza": "2034-04-15"
+  },
+  {
+   "isin": "IT0005584856",
+   "descrizione": "BTP 3,85% 01/07/2034",
+   "tipo": "BTP",
+   "cedola": 3.85,
+   "frequenza": 2,
+   "emissione": "2024-03-01",
+   "scadenza": "2034-07-01"
+  },
+  {
+   "isin": "IT0003535157",
+   "descrizione": "BTP 5% 01/08/2034",
+   "tipo": "BTP",
+   "cedola": 5,
+   "frequenza": 2,
+   "emissione": "2003-08-01",
+   "scadenza": "2034-08-01"
+  },
+  {
+   "isin": "IT0005607970",
+   "descrizione": "BTP 3,85% 01/02/2035",
+   "tipo": "BTP",
+   "cedola": 3.85,
+   "frequenza": 2,
+   "emissione": "2024-08-01",
+   "scadenza": "2035-02-01"
+  },
+  {
+   "isin": "IT0005358806",
+   "descrizione": "BTP 3,35% 01/03/2035",
+   "tipo": "BTP",
+   "cedola": 3.35,
+   "frequenza": 2,
+   "emissione": "2018-09-01",
+   "scadenza": "2035-03-01"
+  },
+  {
+   "isin": "IT0005680753",
+   "descrizione": "CCTeu 15/04/2035",
+   "tipo": "CCTeu",
+   "cedola": null,
+   "frequenza": null,
+   "emissione": "2025-10-15",
+   "scadenza": "2035-04-15"
+  },
+  {
+   "isin": "IT0005508590",
+   "descrizione": "BTP Green 4% 30/04/2035",
+   "tipo": "BTP Green",
+   "cedola": 4,
+   "frequenza": 2,
+   "emissione": "2022-04-30",
+   "scadenza": "2035-04-30"
+  },
+  {
+   "isin": "IT0005631590",
+   "descrizione": "BTP 3,65% 01/08/2035",
+   "tipo": "BTP",
+   "cedola": 3.65,
+   "frequenza": 2,
+   "emissione": "2025-01-15",
+   "scadenza": "2035-08-01"
+  },
+  {
+   "isin": "IT0003745541",
+   "descrizione": "BTP€i 15/09/2035",
+   "tipo": "BTP€i",
+   "cedola": 2.35,
+   "frequenza": null,
+   "emissione": "2004-09-15",
+   "scadenza": "2035-09-15"
+  },
+  {
+   "isin": "IT0005648149",
+   "descrizione": "BTP 3,6% 01/10/2035",
+   "tipo": "BTP",
+   "cedola": 3.6,
+   "frequenza": 2,
+   "emissione": "2025-05-02",
+   "scadenza": "2035-10-01"
+  },
+  {
+   "isin": "IT0005676504",
+   "descrizione": "BTP 3,45% 01/02/2036",
+   "tipo": "BTP",
+   "cedola": 3.45,
+   "frequenza": 2,
+   "emissione": "2025-11-03",
+   "scadenza": "2036-02-01"
+  },
+  {
+   "isin": "IT0005402117",
+   "descrizione": "BTP 1,45% 01/03/2036",
+   "tipo": "BTP",
+   "cedola": 1.45,
+   "frequenza": 2,
+   "emissione": "2020-02-18",
+   "scadenza": "2036-03-01"
+  },
+  {
+   "isin": "IT0005707689",
+   "descrizione": "CCTeu 15/04/2036",
+   "tipo": "CCTeu",
+   "cedola": null,
+   "frequenza": null,
+   "emissione": "2026-04-15",
+   "scadenza": "2036-04-15"
+  },
+  {
+   "isin": "IT0005588881",
+   "descrizione": "BTP€i 15/05/2036",
+   "tipo": "BTP€i",
+   "cedola": 1.8,
+   "frequenza": null,
+   "emissione": "2023-11-15",
+   "scadenza": "2036-05-15"
+  },
+  {
+   "isin": "IT0005706285",
+   "descrizione": "BTP 3,8% 01/07/2036",
+   "tipo": "BTP",
+   "cedola": 3.8,
+   "frequenza": 2,
+   "emissione": "2026-04-22",
+   "scadenza": "2036-07-01"
+  },
+  {
+   "isin": "IT0005177909",
+   "descrizione": "BTP 2,25% 01/09/2036",
+   "tipo": "BTP",
+   "cedola": 2.25,
+   "frequenza": 2,
+   "emissione": "2016-03-01",
+   "scadenza": "2036-09-01"
+  },
+  {
+   "isin": "IT0003934657",
+   "descrizione": "BTP 4% 01/02/2037",
+   "tipo": "BTP",
+   "cedola": 4,
+   "frequenza": 2,
+   "emissione": "2005-08-01",
+   "scadenza": "2037-02-01"
+  },
+  {
+   "isin": "IT0005725160",
+   "descrizione": "BTP€i 15/02/2037",
+   "tipo": "BTP€i",
+   "cedola": 2,
+   "frequenza": null,
+   "emissione": "2026-07-30",
+   "scadenza": "2037-02-15"
+  },
+  {
+   "isin": "IT0005433195",
+   "descrizione": "BTP 0,95% 01/03/2037",
+   "tipo": "BTP",
+   "cedola": 0.95,
+   "frequenza": 2,
+   "emissione": "2021-01-12",
+   "scadenza": "2037-03-01"
+  },
+  {
+   "isin": "IT0005442089",
+   "descrizione": "BTP Futura 27/04/2037",
+   "tipo": "BTP Futura",
+   "cedola": 0.75,
+   "frequenza": null,
+   "emissione": "2021-04-27",
+   "scadenza": "2037-04-27"
+  },
+  {
+   "isin": "IT0005596470",
+   "descrizione": "BTP Green 4,05% 30/10/2037",
+   "tipo": "BTP Green",
+   "cedola": 4.05,
+   "frequenza": 2,
+   "emissione": "2024-04-30",
+   "scadenza": "2037-10-30"
+  },
+  {
+   "isin": "IT0005496770",
+   "descrizione": "BTP 3,25% 01/03/2038",
+   "tipo": "BTP",
+   "cedola": 3.25,
+   "frequenza": 2,
+   "emissione": "2022-03-01",
+   "scadenza": "2038-03-01"
+  },
+  {
+   "isin": "IT0005321325",
+   "descrizione": "BTP 2,95% 01/09/2038",
+   "tipo": "BTP",
+   "cedola": 2.95,
+   "frequenza": 2,
+   "emissione": "2017-09-01",
+   "scadenza": "2038-09-01"
+  },
+  {
+   "isin": "IT0005547812",
+   "descrizione": "BTP€i 15/05/2039",
+   "tipo": "BTP€i",
+   "cedola": 2.4,
+   "frequenza": null,
+   "emissione": "2023-05-15",
+   "scadenza": "2039-05-15"
+  },
+  {
+   "isin": "IT0004286966",
+   "descrizione": "BTP 5% 01/08/2039",
+   "tipo": "BTP",
+   "cedola": 5,
+   "frequenza": 2,
+   "emissione": "2007-08-01",
+   "scadenza": "2039-08-01"
+  },
+  {
+   "isin": "IT0005582421",
+   "descrizione": "BTP 4,15% 01/10/2039",
+   "tipo": "BTP",
+   "cedola": 4.15,
+   "frequenza": 2,
+   "emissione": "2023-10-01",
+   "scadenza": "2039-10-01"
+  },
+  {
+   "isin": "IT0005377152",
+   "descrizione": "BTP 3,1% 01/03/2040",
+   "tipo": "BTP",
+   "cedola": 3.1,
+   "frequenza": 2,
+   "emissione": "2019-03-01",
+   "scadenza": "2040-03-01"
+  },
+  {
+   "isin": "IT0004532559",
+   "descrizione": "BTP 5% 01/09/2040",
+   "tipo": "BTP",
+   "cedola": 5,
+   "frequenza": 2,
+   "emissione": "2009-09-01",
+   "scadenza": "2040-09-01"
+  },
+  {
+   "isin": "IT0005635583",
+   "descrizione": "BTP 3,85% 01/10/2040",
+   "tipo": "BTP",
+   "cedola": 3.85,
+   "frequenza": 2,
+   "emissione": "2025-02-18",
+   "scadenza": "2040-10-01"
+  },
+  {
+   "isin": "IT0005421703",
+   "descrizione": "BTP 1,8% 01/03/2041",
+   "tipo": "BTP",
+   "cedola": 1.8,
+   "frequenza": 2,
+   "emissione": "2020-09-15",
+   "scadenza": "2041-03-01"
+  },
+  {
+   "isin": "IT0004545890",
+   "descrizione": "BTP€i 15/09/2041",
+   "tipo": "BTP€i",
+   "cedola": 2.55,
+   "frequenza": null,
+   "emissione": "2009-09-15",
+   "scadenza": "2041-09-15"
+  },
+  {
+   "isin": "IT0005694630",
+   "descrizione": "BTP 3,95% 01/10/2041",
+   "tipo": "BTP",
+   "cedola": 3.95,
+   "frequenza": 2,
+   "emissione": "2026-02-10",
+   "scadenza": "2041-10-01"
+  },
+  {
+   "isin": "IT0005530032",
+   "descrizione": "BTP 4,45% 01/09/2043",
+   "tipo": "BTP",
+   "cedola": 4.45,
+   "frequenza": 2,
+   "emissione": "2022-09-01",
+   "scadenza": "2043-09-01"
+  },
+  {
+   "isin": "IT0004923998",
+   "descrizione": "BTP 4,75% 01/09/2044",
+   "tipo": "BTP",
+   "cedola": 4.75,
+   "frequenza": 2,
+   "emissione": "2013-03-01",
+   "scadenza": "2044-09-01"
+  },
+  {
+   "isin": "IT0005438004",
+   "descrizione": "BTP Green 1,5% 30/04/2045",
+   "tipo": "BTP Green",
+   "cedola": 1.5,
+   "frequenza": 2,
+   "emissione": "2020-10-30",
+   "scadenza": "2045-04-30"
+  },
+  {
+   "isin": "IT0005706293",
+   "descrizione": "BTP€i 15/02/2046",
+   "tipo": "BTP€i",
+   "cedola": 2.25,
+   "frequenza": null,
+   "emissione": "2026-02-15",
+   "scadenza": "2046-02-15"
+  },
+  {
+   "isin": "IT0005631608",
+   "descrizione": "BTP Green 4,1% 30/04/2046",
+   "tipo": "BTP Green",
+   "cedola": 4.1,
+   "frequenza": 2,
+   "emissione": "2025-01-15",
+   "scadenza": "2046-04-30"
+  },
+  {
+   "isin": "IT0005083057",
+   "descrizione": "BTP 3,25% 01/09/2046",
+   "tipo": "BTP",
+   "cedola": 3.25,
+   "frequenza": 2,
+   "emissione": "2014-09-01",
+   "scadenza": "2046-09-01"
+  },
+  {
+   "isin": "IT0005162828",
+   "descrizione": "BTP 2,7% 01/03/2047",
+   "tipo": "BTP",
+   "cedola": 2.7,
+   "frequenza": 2,
+   "emissione": "2016-02-09",
+   "scadenza": "2047-03-01"
+  },
+  {
+   "isin": "IT0005273013",
+   "descrizione": "BTP 3,45% 01/03/2048",
+   "tipo": "BTP",
+   "cedola": 3.45,
+   "frequenza": 2,
+   "emissione": "2017-03-01",
+   "scadenza": "2048-03-01"
+  },
+  {
+   "isin": "IT0005363111",
+   "descrizione": "BTP 3,85% 01/09/2049",
+   "tipo": "BTP",
+   "cedola": 3.85,
+   "frequenza": 2,
+   "emissione": "2018-09-01",
+   "scadenza": "2049-09-01"
+  },
+  {
+   "isin": "IT0005398406",
+   "descrizione": "BTP 2,45% 01/09/2050",
+   "tipo": "BTP",
+   "cedola": 2.45,
+   "frequenza": 2,
+   "emissione": "2019-09-01",
+   "scadenza": "2050-09-01"
+  },
+  {
+   "isin": "IT0005436701",
+   "descrizione": "BTP€i 15/05/2051",
+   "tipo": "BTP€i",
+   "cedola": 0.15,
+   "frequenza": null,
+   "emissione": "2020-11-15",
+   "scadenza": "2051-05-15"
+  },
+  {
+   "isin": "IT0005425233",
+   "descrizione": "BTP 1,7% 01/09/2051",
+   "tipo": "BTP",
+   "cedola": 1.7,
+   "frequenza": 2,
+   "emissione": "2020-09-01",
+   "scadenza": "2051-09-01"
+  },
+  {
+   "isin": "IT0005480980",
+   "descrizione": "BTP 2,15% 01/09/2052",
+   "tipo": "BTP",
+   "cedola": 2.15,
+   "frequenza": 2,
+   "emissione": "2022-01-12",
+   "scadenza": "2052-09-01"
+  },
+  {
+   "isin": "IT0005534141",
+   "descrizione": "BTP 4,5% 01/10/2053",
+   "tipo": "BTP",
+   "cedola": 4.5,
+   "frequenza": 2,
+   "emissione": "2023-02-23",
+   "scadenza": "2053-10-01"
+  },
+  {
+   "isin": "IT0005611741",
+   "descrizione": "BTP 4,3% 01/10/2054",
+   "tipo": "BTP",
+   "cedola": 4.3,
+   "frequenza": 2,
+   "emissione": "2024-09-17",
+   "scadenza": "2054-10-01"
+  },
+  {
+   "isin": "IT0005668238",
+   "descrizione": "BTP 4,65% 01/10/2055",
+   "tipo": "BTP",
+   "cedola": 4.65,
+   "frequenza": 2,
+   "emissione": "2025-09-09",
+   "scadenza": "2055-10-01"
+  },
+  {
+   "isin": "IT0005647273",
+   "descrizione": "BTP€i 15/05/2056",
+   "tipo": "BTP€i",
+   "cedola": 2.55,
+   "frequenza": null,
+   "emissione": "2024-11-15",
+   "scadenza": "2056-05-15"
+  },
+  {
+   "isin": "IT0005217390",
+   "descrizione": "BTP 2,8% 01/03/2067",
+   "tipo": "BTP",
+   "cedola": 2.8,
+   "frequenza": 2,
+   "emissione": "2016-09-01",
+   "scadenza": "2067-03-01"
+  },
+  {
+   "isin": "IT0005441883",
+   "descrizione": "BTP 2,15% 01/03/2072",
+   "tipo": "BTP",
+   "cedola": 2.15,
+   "frequenza": 2,
+   "emissione": "2021-03-01",
+   "scadenza": "2072-03-01"
+  }
+ ]
+}
