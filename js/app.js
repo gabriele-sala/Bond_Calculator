@@ -688,11 +688,11 @@
         updateDock();
       }).observe(document.querySelector('.headline'));
     }
-    // Ridisegna la rosetta quando cambia il tema chiaro/scuro.
+    // Ridisegna la rosetta quando cambiano tema o palette.
     try {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redrawRosette);
     } catch (e) { /* browser datati */ }
-    new MutationObserver(redrawRosette).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    new MutationObserver(redrawRosette).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-palette'] });
 
     if ('ResizeObserver' in window) {
       let w = 0;

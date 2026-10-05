@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Calcolatore Rendimento Obbligazioni</title>
 <meta name="description" content="Calcola rendimento a scadenza, prezzo tel quel, rateo, duration, convessità e rendimento netto di un'obbligazione.">
+<meta name="theme-color" content="#eef2ef">
+<script>
+  // Applica subito tema e palette salvati, prima che la pagina venga disegnata.
+  (function () {
+    var r = document.documentElement;
+    window.BOND_HOST_THEME = r.getAttribute('data-theme');
+    try {
+      var s = JSON.parse(localStorage.getItem('bondcalc:aspetto') || '{}');
+      if (s.mode === 'light' || s.mode === 'dark') r.setAttribute('data-theme', s.mode);
+      if (/^(blu|ambra|grafite)$/.test(s.palette)) r.setAttribute('data-palette', s.palette);
+    } catch (e) {}
+  })();
+</script>
 <link rel="preload" href="fonts/ibm-plex-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/instrument-serif-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/fonts.css">
@@ -12,6 +25,26 @@
 </head>
 <body>
 <div class="page">
+  <div class="appearance">
+    <div class="appearance-group" role="radiogroup" aria-labelledby="tema-label">
+      <span class="appearance-label" id="tema-label">Tema</span>
+      <div class="seg-mini">
+        <input type="radio" name="tema" id="tema-auto" value="auto"><label for="tema-auto">Automatico</label>
+        <input type="radio" name="tema" id="tema-chiaro" value="light"><label for="tema-chiaro">Chiaro</label>
+        <input type="radio" name="tema" id="tema-scuro" value="dark"><label for="tema-scuro">Scuro</label>
+      </div>
+    </div>
+    <div class="appearance-group" role="radiogroup" aria-labelledby="colore-label">
+      <span class="appearance-label" id="colore-label">Colore</span>
+      <div class="swatches">
+        <input type="radio" name="colore" id="colore-verde" value="verde"><label for="colore-verde" title="Verde" style="--sw-light: #0b7350; --sw-dark: #35a07a"><span class="sr-only">Verde</span></label>
+        <input type="radio" name="colore" id="colore-blu" value="blu"><label for="colore-blu" title="Blu" style="--sw-light: #1d4e94; --sw-dark: #6b9be0"><span class="sr-only">Blu</span></label>
+        <input type="radio" name="colore" id="colore-ambra" value="ambra"><label for="colore-ambra" title="Ambra" style="--sw-light: #8a5300; --sw-dark: #e0a54a"><span class="sr-only">Ambra</span></label>
+        <input type="radio" name="colore" id="colore-grafite" value="grafite"><label for="colore-grafite" title="Grafite" style="--sw-light: #2a3039; --sw-dark: #d4d9e0"><span class="sr-only">Grafite</span></label>
+      </div>
+    </div>
+  </div>
+
   <header class="masthead">
     <div class="masthead-text">
       <p class="eyebrow">Reddito fisso · prezzi per 100 di nominale</p>
@@ -269,6 +302,7 @@
   </section>
 </div>
 
+<script src="js/theme.js"></script>
 <script src="js/config.js"></script>
 <script src="js/bond.js"></script>
 <script src="js/isin.js"></script>
