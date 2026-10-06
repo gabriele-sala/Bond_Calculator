@@ -255,6 +255,12 @@
     const f = b.freq;
     const inv = r.investor;
 
+    // Titolo dell'elenco MEF emesso dopo l'ultima cedola calcolata: è nel primo
+    // periodo cedolare, che può essere irregolare (il motore non lo gestisce).
+    const t = isinLoaded && catalogCache && catalogCache.map.get(Isin.normalize($('isin').value));
+    const issued = t && B.parseDate(t.emissione);
+    $('first-coupon-note').hidden = !(issued && b.prevCoupon && issued > b.prevCoupon);
+
     $('r-eff').textContent = pct(r.ytmEffective);
     $('r-ytm').textContent = 'effettivo annuo · YTM ' + pct(r.ytm) + ' ' + FREQ_LABEL[f];
     $('r-net').textContent = pct(inv.effective);
@@ -626,6 +632,7 @@
   const longDateIt = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
   const longDate = (iso) => longDateIt.format(B.parseDate(iso));
   let catalogPromise = null;
+  let catalogCache = null;
 
   function loadCatalog() {
     if (!catalogPromise) {
@@ -636,6 +643,7 @@
         })
         .then((data) => {
           const catalog = { map: Isin.indexCatalog(data), updated: data.aggiornato || null };
+          catalogCache = catalog;
           if (catalog.updated) {
             $('isin-source').textContent = 'Elenco titoli di Stato del MEF, aggiornato al ' + longDate(catalog.updated) + '.';
             $('isin-source').hidden = false;
@@ -1394,7 +1402,7 @@
       save();
     });
     updatePriceLink();
-    loadCatalog().catch(() => { /* segnalato alla prima ricerca */ });
+    loadCatalog().then(() => { if (isinLoaded) compute(); }).catch(() => { /* segnalato alla prima ricerca */ });
     initPortfolio();
 
     $('preset').addEventListener('change', (e) => {
