@@ -211,9 +211,17 @@
       <div class="share-row">
         <span class="isin-status" id="share-status" role="status"></span>
         <button type="button" class="btn btn-quiet" id="back-to-own" hidden>Torna alla tua analisi</button>
+        <button type="button" class="btn btn-quiet" id="pdf-btn">Scarica PDF</button>
         <button type="button" class="btn btn-quiet" id="share-btn">Condividi analisi</button>
         <input type="text" id="share-url" class="share-url" readonly aria-label="Link dell'analisi" hidden>
       </div>
+
+      <header class="print-summary" id="print-summary">
+        <p class="print-brand">Calcolatore Rendimento Obbligazioni</p>
+        <h1 class="print-title" id="print-title">Analisi obbligazione</h1>
+        <p class="print-meta" id="print-meta"></p>
+        <dl class="print-inputs" id="print-inputs"></dl>
+      </header>
 
       <div id="output">
         <p class="estimate-note" id="first-coupon-note" hidden><strong>Titolo nel primo periodo cedolare.</strong> La prima cedola può essere più corta o più lunga delle altre: rateo, prezzo tel quel e prima cedola possono differire da quelli della banca. Il rendimento resta indicativo.</p>
@@ -314,6 +322,7 @@
           </div>
         </div>
       </div>
+      <p class="print-footer" id="print-footer"></p>
     </section>
   </main>
 

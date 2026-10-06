@@ -1290,6 +1290,50 @@
     }
   }
 
+  // ------------------------------------------------ PDF (stampa del browser)
+
+  // Intestazione e piede visibili solo in stampa: titolo, dati inseriti, data.
+  function fillPrint() {
+    if (!last) return false;
+    const input = last.input;
+    const code = Isin.normalize($('isin').value);
+    const t = isinLoaded && catalogCache && catalogCache.map.get(code);
+    const today = new Date();
+    $('print-title').textContent = t ? t.descrizione : 'Obbligazione con scadenza ' + longDateIt.format(input.maturity);
+    $('print-meta').textContent = [
+      Isin.isValid(code) ? 'ISIN ' + code : '',
+      'Analisi del ' + longDateIt.format(B.ymd(today.getFullYear(), today.getMonth() + 1, today.getDate())),
+      'regolamento ' + longDateIt.format(input.settlement),
+    ].filter(Boolean).join(' · ');
+    const rows = [
+      ['Scadenza', longDateIt.format(input.maturity)],
+      ['Cedola annua lorda', input.couponRate ? upTo2.format(input.couponRate * 100) + '% ' + FREQ_LABEL[input.freq] : 'zero coupon'],
+      ['Convenzione giorni', input.dayCount],
+      ['Prezzo di rimborso', num(input.redemption, 2)],
+      input.mode === 'price'
+        ? ['Prezzo di acquisto (secco)', input.priceDefaulted ? '100 (non inserito)' : nf(2, 6).format(input.cleanPrice)]
+        : ['Rendimento inserito', $('yield').value + '% ' + ($('yieldbasis').value === 'eff' ? 'effettivo' : 'nominale')],
+      ['Nominale', eur(input.nominal)],
+      ['Commissioni', eur(input.commission)],
+      ['Tassazione', input.taxRate > 0 ? upTo2.format(input.taxRate * 100) + '%' : 'nessuna'],
+      ['Imposta di bollo', input.stampDuty ? 'inclusa (0,20% annuo)' : 'non inclusa'],
+    ];
+    if (input.call) rows.push(['Rimborso anticipato (call)', longDateIt.format(input.call.date) + ' a ' + num(input.call.price, 2)]);
+    $('print-inputs').innerHTML = rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
+    const url = location.href.split('#')[0].split('?')[0] + '?' + Share.encode(shareState());
+    $('print-footer').innerHTML = '<strong>È una stima a scopo informativo, non una consulenza finanziaria.</strong> Vale per il regime amministrato con il titolo tenuto fino alla scadenza; verifica i dati con il prospetto del titolo e con la tua banca. Per riaprire questa analisi: <a href="' + esc(url) + '">' + esc(url) + '</a>';
+    return true;
+  }
+
+  function downloadPdf() {
+    if (!fillPrint()) {
+      setShareStatus('Completa prima i dati del titolo: il PDF contiene un\'analisi valida.', 'warn');
+      return;
+    }
+    setShareStatus('Nella finestra di stampa scegli "Salva come PDF".', 'info');
+    window.print();
+  }
+
   // ------------------------------------------------ ripristino
 
   function applyDefaults() {
@@ -1378,6 +1422,8 @@
     });
     $('reset-calc').addEventListener('click', resetCalculator);
     $('share-btn').addEventListener('click', shareAnalysis);
+    $('pdf-btn').addEventListener('click', downloadPdf);
+    window.addEventListener('beforeprint', fillPrint);
     $('back-to-own').addEventListener('click', backToOwn);
     $('isin-price').addEventListener('click', () => {
       if (isinLoaded && !$('price').value.trim()) setStep(4);
