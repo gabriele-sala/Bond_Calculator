@@ -22,6 +22,10 @@
 
 /* Verde: inchiostro verde dei titoli del Tesoro (predefinita) */
 :root {
+  --brand: #0b7350;
+  --brand-mark: #0b7350;
+  --brand-on: #f4fbf7;
+  --brand-ink: #12241c;
   --bg: #eef2ef;
   --surface: #fcfdfc;
   --ink: #12241c;
@@ -37,6 +41,8 @@
 }
 @media screen and (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    --brand: #35a07a;
+    --brand-ink: #e2ece6;
     --bg: #0d1512;
     --surface: #141f1a;
     --ink: #e2ece6;
@@ -54,6 +60,8 @@
 }
 @media screen {
 :root[data-theme="dark"] {
+  --brand: #35a07a;
+  --brand-ink: #e2ece6;
   --bg: #0d1512;
   --surface: #141f1a;
   --ink: #e2ece6;
@@ -267,6 +275,11 @@ body {
   gap: 10px 24px;
   margin-bottom: -12px;
 }
+/* Marchio "Calcolo Obbligazioni": colori propri, uguali con ogni palette. */
+.brand { display: inline-flex; align-items: center; gap: 10px; margin-right: auto; color: var(--brand-ink); }
+.brand-mark { width: 34px; height: 34px; flex: none; }
+.brand-name { font-family: var(--font-display); font-size: 1.35rem; line-height: 1; white-space: nowrap; }
+.brand-name em { color: var(--brand); }
 .appearance-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
 .appearance-label {
   font-size: 0.75rem;
@@ -1007,7 +1020,9 @@ table.coupons tr.redeem td:first-child { font-style: italic; }
   .chart { max-width: 15cm; margin-inline: auto; }
 
   .print-summary { display: grid; gap: 4px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--accent); break-inside: avoid; }
-  .print-brand { margin: 0; font-size: 8.5pt; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .print-brand { margin: 0 0 4px; }
+  .print-brand .brand-mark { width: 22px; height: 22px; }
+  .print-brand .brand-name { font-size: 12pt; }
   .print-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 20pt; line-height: 1.15; }
   .print-meta { margin: 0; color: var(--muted); }
   .print-inputs { margin: 6px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 16px; }

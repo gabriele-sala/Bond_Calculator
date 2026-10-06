@@ -6,6 +6,11 @@
 <title>Calcolatore Rendimento Obbligazioni</title>
 <meta name="description" content="Calcola rendimento a scadenza, prezzo tel quel, rateo, duration, convessità e rendimento netto di un'obbligazione.">
 <meta name="theme-color" content="#eef2ef">
+<link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="img/favicon-48.png">
+<link rel="icon" type="image/png" sizes="192x192" href="img/favicon-192.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <script>
   // Applica subito tema e palette salvati, prima che la pagina venga disegnata.
   (function () {
@@ -24,8 +29,10 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="brand-mark" viewBox="0 0 64 64"><circle cx="32" cy="32" r="31" style="fill:var(--brand-mark)"/><g opacity="0.38"><ellipse cx="32" cy="32" rx="26.00" ry="11.70" transform="rotate(0.00 32 32)" fill="none" style="stroke:var(--brand-on)" stroke-width="1.3"/><ellipse cx="32" cy="32" rx="26.00" ry="11.70" transform="rotate(36.00 32 32)" fill="none" style="stroke:var(--brand-on)" stroke-width="1.3"/><ellipse cx="32" cy="32" rx="26.00" ry="11.70" transform="rotate(72.00 32 32)" fill="none" style="stroke:var(--brand-on)" stroke-width="1.3"/><ellipse cx="32" cy="32" rx="26.00" ry="11.70" transform="rotate(108.00 32 32)" fill="none" style="stroke:var(--brand-on)" stroke-width="1.3"/><ellipse cx="32" cy="32" rx="26.00" ry="11.70" transform="rotate(144.00 32 32)" fill="none" style="stroke:var(--brand-on)" stroke-width="1.3"/></g><path d="M10.00 45.20 C 15.28 26.72, 29.80 21.44, 54.00 20.56" fill="none" style="stroke:var(--brand-on)" stroke-width="4.6" stroke-linecap="round"/><circle cx="12.76" cy="38.19" r="2.55" style="fill:var(--brand-on)"/><circle cx="20.05" cy="29.37" r="2.55" style="fill:var(--brand-on)"/><circle cx="32.66" cy="23.33" r="2.55" style="fill:var(--brand-on)"/><circle cx="54.00" cy="20.56" r="4.25" style="fill:var(--brand-on)"/></symbol></svg>
 <div class="page">
   <div class="appearance">
+    <div class="brand"><svg class="brand-mark" aria-hidden="true" focusable="false"><use href="#brand-mark"/></svg><span class="brand-name">Calcolo <em>Obbligazioni</em></span></div>
     <div class="appearance-group" role="radiogroup" aria-labelledby="tema-label">
       <span class="appearance-label" id="tema-label">Tema</span>
       <div class="seg-mini">
@@ -217,7 +224,7 @@
       </div>
 
       <header class="print-summary" id="print-summary">
-        <p class="print-brand">Calcolatore Rendimento Obbligazioni</p>
+        <div class="brand print-brand"><svg class="brand-mark" aria-hidden="true" focusable="false"><use href="#brand-mark"/></svg><span class="brand-name">Calcolo <em>Obbligazioni</em></span></div>
         <h1 class="print-title" id="print-title">Analisi obbligazione</h1>
         <p class="print-meta" id="print-meta"></p>
         <dl class="print-inputs" id="print-inputs"></dl>
