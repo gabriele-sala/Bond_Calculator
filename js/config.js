@@ -8,4 +8,8 @@ window.BOND_CONFIG = {
   //   { "isin": "IT…", "price": 101.35, "time": "2026-10-05T14:32:00Z", "source": "Nome fonte" }
   // con prezzo secco per 100 di nominale, oppure con stato 404 se il titolo non è disponibile.
   priceEndpoint: '',
+
+  // Indirizzo pubblico del sito: i link condivisi e il PDF usano questo
+  // invece dell'indirizzo tecnico di GitHub Pages.
+  siteUrl: 'https://calcoloobbligazioni.it/',
 };

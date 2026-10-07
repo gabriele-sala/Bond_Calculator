@@ -228,13 +228,13 @@
     if (errors.length) {
       $('error').textContent = errors[0];
       $('error').hidden = false;
-      $('output').style.opacity = '0.35';
+      $('output').classList.add('stale');
       last = null;
       updateDock();
       return;
     }
     $('error').hidden = true;
-    $('output').style.opacity = '';
+    $('output').classList.remove('stale');
     last = { input, result };
     render(input, result);
     save();
@@ -777,6 +777,7 @@
       const when = longDate(v.maturity);
       const details = v.coupon ? `cedola ${upTo2.format(v.coupon)}% ${FREQ_LABEL[v.freq]}, scadenza ${when}` : `zero coupon, scadenza ${when}`;
       setIsinStatus(`✓ Dati del titolo caricati: ${t.descrizione} (${details}). ${priceNote}`, 'ok');
+      trackEvent('carica-isin', 'Titolo caricato da ISIN');
       compute();
       syncSteps();
       if (!$('price').value) $('price').focus();
@@ -1267,7 +1268,8 @@
       setShareStatus('Completa prima i dati del titolo: il link condivide un\'analisi valida.', 'warn');
       return;
     }
-    const url = location.href.split('#')[0].split('?')[0] + '?' + Share.encode(shareState());
+    const url = siteBase() + '?' + Share.encode(shareState());
+    trackEvent('condividi-analisi', 'Condividi analisi');
     $('share-url').hidden = true;
     if (navigator.share) {
       try {
@@ -1288,6 +1290,44 @@
       $('share-url').select();
       setShareStatus('Copia il link qui sotto.', 'info');
     }
+  }
+
+  // Base dei link condivisi e del PDF: sull'indirizzo tecnico di GitHub Pages
+  // si usa quello pubblico del sito (CONFIG.siteUrl).
+  function siteBase() {
+    const here = location.href.split('#')[0].split('?')[0];
+    return CONFIG.siteUrl && /\.github\.io$/i.test(location.hostname) ? CONFIG.siteUrl : here;
+  }
+
+  // ------------------------------------------------ statistiche (GoatCounter)
+
+  // Statistiche anonime e senza cookie: si conta la visita e qualche azione,
+  // mai i dati dell'analisi. Il link condiviso viene tolto dall'indirizzo solo
+  // per l'istante del conteggio, poi rimesso com'era.
+  const statsQueue = [];
+  const statsReady = () => window.goatcounter && typeof window.goatcounter.count === 'function';
+  function statsSend(vars) {
+    const full = location.href;
+    try {
+      if (location.search) history.replaceState(history.state, '', location.pathname + location.hash);
+      window.goatcounter.count(vars);
+    } catch (e) { /* statistiche non disponibili */ } finally {
+      try {
+        if (location.href !== full) history.replaceState(history.state, '', full);
+      } catch (e) { /* cronologia non modificabile */ }
+    }
+  }
+  function track(vars) {
+    if (statsReady()) statsSend(vars);
+    else if (statsQueue.length < 20) statsQueue.push(vars);
+  }
+  const trackEvent = (name, title) => track({ path: name, title, event: true });
+  function initStats() {
+    const flush = () => { while (statsQueue.length && statsReady()) statsSend(statsQueue.shift()); };
+    track({ path: location.pathname || '/' });
+    const script = document.getElementById('gc-script');
+    if (script) script.addEventListener('load', flush);
+    flush();
   }
 
   // ------------------------------------------------ PDF (stampa del browser)
@@ -1320,7 +1360,7 @@
     ];
     if (input.call) rows.push(['Rimborso anticipato (call)', longDateIt.format(input.call.date) + ' a ' + num(input.call.price, 2)]);
     $('print-inputs').innerHTML = rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('');
-    const url = location.href.split('#')[0].split('?')[0] + '?' + Share.encode(shareState());
+    const url = siteBase() + '?' + Share.encode(shareState());
     $('print-footer').innerHTML = '<strong>È una stima a scopo informativo, non una consulenza finanziaria.</strong> Vale per il regime amministrato con il titolo tenuto fino alla scadenza; verifica i dati con il prospetto del titolo e con la tua banca. Per riaprire questa analisi: <a href="' + esc(url) + '">' + esc(url) + '</a>';
     return true;
   }
@@ -1330,7 +1370,8 @@
       setShareStatus('Completa prima i dati del titolo: il PDF contiene un\'analisi valida.', 'warn');
       return;
     }
-    setShareStatus('Nella finestra di stampa scegli "Salva come PDF".', 'info');
+    setShareStatus('Nella finestra di stampa scegli "Salva come PDF" (e togli "Intestazioni e piè di pagina", se c\'è).', 'info');
+    trackEvent('scarica-pdf', 'Scarica PDF');
     window.print();
   }
 
@@ -1524,6 +1565,8 @@
     }
     // La propria analisi salvata resta recuperabile finché non si modifica nulla.
     if (shared && ownSaved) $('back-to-own').hidden = false;
+    initStats();
+    if (shared) trackEvent('apri-link-condiviso', 'Analisi aperta da un link condiviso');
   }
 
   init();
