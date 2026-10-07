@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duration BTP: quanto perde se i tassi salgono | Calcolo Obbligazioni</title>
+<meta name="description" content="Duration di Macaulay e modificata, DV01 e convessità spiegati con un esempio in euro: quanto perde un BTP se i tassi salgono e quanto ci vuole a recuperare.">
+<link rel="canonical" href="https://calcoloobbligazioni.it/guide/duration-rischio-tassi/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Calcolo Obbligazioni">
+<meta property="og:locale" content="it_IT">
+<meta property="og:url" content="https://calcoloobbligazioni.it/guide/duration-rischio-tassi/">
+<meta property="og:title" content="Duration: quanto perde un BTP se i tassi salgono">
+<meta property="og:description" content="Duration di Macaulay e modificata, DV01 e convessità spiegati con un esempio in euro: quanto perde un BTP se i tassi salgono e quanto ci vuole a recuperare.">
+<meta property="og:image" content="https://calcoloobbligazioni.it/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#eef2ef">
+<link rel="icon" type="image/png" sizes="32x32" href="../../img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../img/favicon-16.png">
+<link rel="apple-touch-icon" href="../../img/apple-touch-icon.png">
+<script>
+  (function () { try { var s = JSON.parse(localStorage.getItem('bondcalc:aspetto') || '{}');
+    if (s.mode === 'light' || s.mode === 'dark') document.documentElement.setAttribute('data-theme', s.mode); } catch (e) {} })();
+</script>
+<link rel="stylesheet" href="../../css/fonts.css">
+<link rel="stylesheet" href="../../css/guide.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Duration: quanto perde un BTP se i tassi salgono", "description": "Duration di Macaulay e modificata, DV01 e convessità spiegati con un esempio in euro: quanto perde un BTP se i tassi salgono e quanto ci vuole a recuperare.", "inLanguage": "it", "url": "https://calcoloobbligazioni.it/guide/duration-rischio-tassi/", "datePublished": "2026-10-08", "dateModified": "2026-10-08", "author": {"@type": "Organization", "name": "Calcolo Obbligazioni", "url": "https://calcoloobbligazioni.it/"}, "publisher": {"@type": "Organization", "name": "Calcolo Obbligazioni", "url": "https://calcoloobbligazioni.it/"}, "image": "https://calcoloobbligazioni.it/img/og-image.png"}</script>
+<script data-goatcounter="https://sungfive.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<a class="brand" href="../../"><img src="../../img/brand/favicon.svg" alt="" width="34" height="34"><span>Calcolo <em>Obbligazioni</em></span></a>
+<p class="crumbs"><a href="../../">Calcolatore</a> › <a href="../">Guide</a></p>
+<main>
+<h1>Duration: quanto perde un BTP se i tassi salgono</h1>
+<p class="lede">Se i tassi salgono, il prezzo dei BTP già in circolazione scende. Di quanto? Lo dice la duration. Ecco come leggerla, con un esempio in euro.</p>
+
+<h2>Perché prezzo e rendimento vanno in direzioni opposte</h2>
+<p>Un BTP paga cedole fisse. Se i nuovi titoli rendono di più, il tuo vale meno: il suo prezzo scende finché il rendimento a scadenza si allinea al mercato. Se i tassi scendono succede il contrario.</p>
+
+<h2>Duration di Macaulay e duration modificata</h2>
+<ul>
+<li><strong>Duration di Macaulay</strong>: la vita media dei flussi del titolo, pesati per il loro valore attuale. Si misura in anni.</li>
+<li><strong>Duration modificata</strong>: la sensibilità del prezzo al rendimento. Con una duration modificata di 7, se il rendimento sale dell'1% il prezzo scende di circa il 7%.</li>
+</ul>
+<p>Il <strong>DV01</strong> traduce la stessa misura per un singolo punto base (0,01%): è di quanto cambia il prezzo tel quel, per 100 di nominale, se il rendimento sale di 0,01%.</p>
+
+<h2>Esempio: BTP 3,85% 1 febbraio 2035</h2>
+<div class="example">
+<h3>Prezzo 99,80, regolamento 9 ottobre 2026</h3>
+<dl>
+<dt>Rendimento lordo effettivo annuo</dt><dd>3,915%</dd>
+<dt>Duration di Macaulay</dt><dd>7,14 anni</dd>
+<dt>Duration modificata</dt><dd>7,00</dd>
+<dt>DV01 per 100 di nominale</dt><dd>0,0704</dd>
+<dt>Su 100.000 € nominali, +1 punto base</dt><dd class="strong">≈ −70,41 €</dd>
+</dl>
+</div>
+
+<h2>La duration è una stima: conta anche la convessità</h2>
+<p>La duration è una retta, il prezzo vero una curva. Per piccole variazioni coincidono; per variazioni grandi il prezzo vero scende un po' meno e sale un po' di più della stima. Questa differenza si chiama <strong>convessità</strong>.</p>
+<table>
+<thead><tr><th scope="col">Se il rendimento</th><th scope="col">Prezzo secco esatto</th><th scope="col">Stima con la duration</th></tr></thead>
+<tbody>
+<tr><td>scende di 100 pb</td><td>107,01</td><td>106,72</td></tr>
+<tr><td>sale di 100 pb</td><td>93,18</td><td>92,91</td></tr>
+<tr><td>sale di 200 pb</td><td>87,09</td><td>86,05</td></tr>
+</tbody>
+</table>
+<p>Su 10.000 € nominali, un rialzo improvviso di 1 punto percentuale significa una perdita sulla carta di circa <strong>662 €</strong> (−6,6% del tel quel).</p>
+
+<h2>Quanto ci vuole a recuperare</h2>
+<p>Se tieni il titolo, le cedole lavorano per te. Con un rialzo di 100 punti base che poi resta, il valore del titolo più le cedole incassate torna a quanto hai speso in circa <strong>un anno e mezzo al lordo</strong> (25 marzo 2028) e in circa <strong>un anno e otto mesi al netto</strong> (27 maggio 2028).</p>
+<p>Visto dall'altro lato: se fra un anno il rendimento sarà salito di meno di circa <strong>0,63 punti percentuali</strong> (0,55 considerando le tasse), vendendo in quel momento non avrai perso, perché le cedole incassate compensano il calo del prezzo.</p>
+
+<h2>E se tengo il titolo fino alla scadenza?</h2>
+<p>Allora le oscillazioni di prezzo contano poco: a scadenza ricevi 100 per ogni 100 di nominale, più tutte le cedole. La duration conta se potresti dover vendere prima, o se confronti titoli con scadenze diverse.</p>
+<a class="cta" href="../../?da=guida&amp;isin=IT0005607970&amp;regolamento=2026-10-09&amp;scadenza=2035-02-01&amp;cedola=3.85&amp;frequenza=2&amp;giorni=ACT%2FACT&amp;rimborso=100&amp;modo=price&amp;prezzo=99.8&amp;nominale=10000&amp;commissioni=0&amp;tassa=0.125&amp;bollo=0">Calcola con questi dati</a>
+
+</main>
+<nav class="related" aria-label="Altre guide"><h2>Altre guide</h2><ul><li><a href="../rendimento-netto-btp/">Come si calcola il rendimento netto di un BTP</a></li><li><a href="../rateo-prezzo-tel-quel/">Rateo e prezzo tel quel: cosa paghi davvero</a></li></ul></nav>
+<p class="note">Contenuto informativo, non è una consulenza finanziaria né fiscale. Gli esempi sono calcolati con il calcolatore del sito alla data indicata; verifica sempre i dati del titolo e la tua situazione fiscale.</p>
+</div>
+</body>
+</html>
