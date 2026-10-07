@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://calcoloobbligazioni.it/</loc>
-    <lastmod>2026-10-08</lastmod>
-  </url>
+  <url><loc>https://calcoloobbligazioni.it/</loc><lastmod>2026-10-08</lastmod></url>
+  <url><loc>https://calcoloobbligazioni.it/guide/</loc><lastmod>2026-10-08</lastmod></url>
+  <url><loc>https://calcoloobbligazioni.it/guide/rendimento-netto-btp/</loc><lastmod>2026-10-08</lastmod></url>
+  <url><loc>https://calcoloobbligazioni.it/guide/rateo-prezzo-tel-quel/</loc><lastmod>2026-10-08</lastmod></url>
+  <url><loc>https://calcoloobbligazioni.it/guide/duration-rischio-tassi/</loc><lastmod>2026-10-08</lastmod></url>
 </urlset>

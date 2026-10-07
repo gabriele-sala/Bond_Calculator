@@ -1429,6 +1429,7 @@
     // Un link condiviso ricostruisce l'analisi così com'era, data compresa.
     const link = Share.parse(location.search);
     const shared = link.data;
+    const fromGuide = new URLSearchParams(location.search).get('da') === 'guida';
     // Share controlla solo il formato dell'ISIN; qui anche la cifra di controllo.
     if (shared && shared.isin && !Isin.isValid(shared.isin)) {
       delete shared.isin;
@@ -1558,6 +1559,8 @@
     syncSteps();
     if (shared && link.problems.length) {
       setShareStatus('Link incompleto o modificato. Dati mancanti o non validi: ' + link.problems.join(', ') + '. Al loro posto ci sono i valori iniziali: controllali prima di usare i risultati.', 'warn');
+    } else if (shared && fromGuide) {
+      setShareStatus('Esempio dalla guida: cambia prezzo, importo e tassazione per fare i tuoi conti.', 'info');
     } else if (shared) {
       setShareStatus('Analisi aperta da un link condiviso: dati e data di regolamento sono quelli del link.', 'info');
     } else if (link.known) {
@@ -1566,7 +1569,7 @@
     // La propria analisi salvata resta recuperabile finché non si modifica nulla.
     if (shared && ownSaved) $('back-to-own').hidden = false;
     initStats();
-    if (shared) trackEvent('apri-link-condiviso', 'Analisi aperta da un link condiviso');
+    if (shared) trackEvent(fromGuide ? 'apri-da-guida' : 'apri-link-condiviso', fromGuide ? 'Esempio aperto da una guida' : 'Analisi aperta da un link condiviso');
   }
 
   init();

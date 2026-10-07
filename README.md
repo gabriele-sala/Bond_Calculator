@@ -55,6 +55,10 @@ Nel campo "Prezzo di acquisto / simulazione" va il prezzo secco per 100 di nomin
 
 "Ripristina calcolatore" riporta il modulo ai valori iniziali senza toccare il portafoglio; "Svuota portafoglio" fa l'opposto.
 
+## Guide
+
+Nella cartella `guide/` ci sono pagine statiche separate, leggere e senza il calcolatore: rendimento netto di un BTP, rateo e prezzo tel quel, duration e rischio tassi. Gli esempi sono calcolati con `js/bond.js` e il pulsante "Calcola con questi dati" apre il calcolatore già compilato. La pagina principale le collega con pochi link in fondo.
+
 ## Privacy
 
 Nessun cookie e nessuna libreria da CDN. L'unico servizio esterno sono le statistiche di visita anonime di [GoatCounter](https://www.goatcounter.com), senza cookie: si contano la visita e alcune azioni (titolo caricato da ISIN, PDF, link condiviso), mai i dati dell'analisi, che vengono tolti dall'indirizzo prima del conteggio. Se un blocco pubblicità ferma GoatCounter, il sito funziona lo stesso. L'ultima analisi, il portafoglio e la scelta del tema restano salvati solo nel browser (`localStorage`).

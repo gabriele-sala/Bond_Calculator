@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rendimento netto BTP: come si calcola, con esempio | Calcolo Obbligazioni</title>
+<meta name="description" content="Come si passa dal rendimento lordo al netto di un BTP: ritenuta del 12,5% su cedole e plusvalenza, prima cedola, commissioni e bollo. Con un esempio numerico.">
+<link rel="canonical" href="https://calcoloobbligazioni.it/guide/rendimento-netto-btp/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Calcolo Obbligazioni">
+<meta property="og:locale" content="it_IT">
+<meta property="og:url" content="https://calcoloobbligazioni.it/guide/rendimento-netto-btp/">
+<meta property="og:title" content="Come si calcola il rendimento netto di un BTP">
+<meta property="og:description" content="Come si passa dal rendimento lordo al netto di un BTP: ritenuta del 12,5% su cedole e plusvalenza, prima cedola, commissioni e bollo. Con un esempio numerico.">
+<meta property="og:image" content="https://calcoloobbligazioni.it/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#eef2ef">
+<link rel="icon" type="image/png" sizes="32x32" href="../../img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../img/favicon-16.png">
+<link rel="apple-touch-icon" href="../../img/apple-touch-icon.png">
+<script>
+  (function () { try { var s = JSON.parse(localStorage.getItem('bondcalc:aspetto') || '{}');
+    if (s.mode === 'light' || s.mode === 'dark') document.documentElement.setAttribute('data-theme', s.mode); } catch (e) {} })();
+</script>
+<link rel="stylesheet" href="../../css/fonts.css">
+<link rel="stylesheet" href="../../css/guide.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Come si calcola il rendimento netto di un BTP", "description": "Come si passa dal rendimento lordo al netto di un BTP: ritenuta del 12,5% su cedole e plusvalenza, prima cedola, commissioni e bollo. Con un esempio numerico.", "inLanguage": "it", "url": "https://calcoloobbligazioni.it/guide/rendimento-netto-btp/", "datePublished": "2026-10-08", "dateModified": "2026-10-08", "author": {"@type": "Organization", "name": "Calcolo Obbligazioni", "url": "https://calcoloobbligazioni.it/"}, "publisher": {"@type": "Organization", "name": "Calcolo Obbligazioni", "url": "https://calcoloobbligazioni.it/"}, "image": "https://calcoloobbligazioni.it/img/og-image.png"}</script>
+<script data-goatcounter="https://sungfive.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<a class="brand" href="../../"><img src="../../img/brand/favicon.svg" alt="" width="34" height="34"><span>Calcolo <em>Obbligazioni</em></span></a>
+<p class="crumbs"><a href="../../">Calcolatore</a> › <a href="../">Guide</a></p>
+<main>
+<h1>Come si calcola il rendimento netto di un BTP</h1>
+<p class="lede">Il rendimento che leggi sui siti di Borsa è quasi sempre lordo. Quello che incassi davvero dipende da tasse, prima cedola, commissioni e imposta di bollo. Ecco come si passa dall'uno all'altro, con un esempio completo.</p>
+
+<h2>1. Il punto di partenza: il rendimento lordo a scadenza</h2>
+<p>Il rendimento a scadenza (YTM) è il tasso che rende uguale quello che paghi oggi, il prezzo <em>tel quel</em>, e tutto quello che riceverai: cedole e rimborso a 100. Si esprime in due modi:</p>
+<ul>
+<li><strong>nominale</strong>, alla frequenza della cedola (per un BTP, semestrale);</li>
+<li><strong>effettivo annuo</strong>, con la capitalizzazione: è il dato usato da Borsa Italiana e dal MEF, e quello che conviene confrontare.</li>
+</ul>
+
+<h2>2. Le tasse: 12,5% su cedole e plusvalenza</h2>
+<p>Per i titoli di Stato italiani (e degli Stati della "white list") la ritenuta è del <strong>12,5%</strong>; per le obbligazioni societarie è del <strong>26%</strong>. Colpisce due cose:</p>
+<ul>
+<li><strong>ogni cedola</strong>: su una cedola semestrale di 1,925 per 100 restano 1,684;</li>
+<li><strong>la plusvalenza</strong> a scadenza, se hai comprato sotto 100: la differenza fra 100 e quanto hai pagato, commissioni comprese.</li>
+</ul>
+<p>Se compri sopra 100, a scadenza hai una minusvalenza: non ti viene rimborsata, ma può servire a compensare plusvalenze future con regole proprie. Il calcolatore, per prudenza, non ne tiene conto.</p>
+
+<h2>3. La prima cedola</h2>
+<p>Quando compri paghi al venditore il <a href="../rateo-prezzo-tel-quel/">rateo</a>, cioè la parte di cedola già maturata. Alla prima cedola la ritenuta riguarda solo la parte maturata <em>dopo</em> il tuo acquisto: per questo la prima cedola netta è più alta delle successive.</p>
+
+<h2>4. Commissioni e imposta di bollo</h2>
+<p>Le commissioni d'acquisto si sommano a quanto paghi e abbassano il rendimento, tanto più quanto è piccolo l'importo. L'imposta di bollo sul deposito titoli (0,20% annuo del controvalore) pesa ogni anno fino alla scadenza.</p>
+
+<h2>Esempio: BTP 3,85% 1 febbraio 2035</h2>
+<div class="example">
+<h3>Acquisto di 10.000 € nominali a 99,80, regolamento 9 ottobre 2026</h3>
+<dl>
+<dt>Rendimento lordo effettivo annuo</dt><dd>3,915%</dd>
+<dt>Rateo pagato al venditore</dt><dd>72,19 €</dd>
+<dt>Totale pagato (tel quel)</dt><dd>10.052,19 €</dd>
+<dt>Cedola semestrale lorda / netta</dt><dd>192,50 / 168,44 €</dd>
+<dt>Prima cedola netta (1 febbraio 2027)</dt><dd>177,46 €</dd>
+<dt>Imposta sulla plusvalenza a scadenza</dt><dd>2,50 €</dd>
+<dt>Rendimento netto stimato</dt><dd class="strong">3,422%</dd>
+</dl>
+</div>
+<p>Con gli stessi dati, cambiando una cosa alla volta:</p>
+<table>
+<thead><tr><th scope="col">Caso</th><th scope="col">Rendimento netto</th></tr></thead>
+<tbody>
+<tr><td>Senza commissioni né bollo</td><td>3,422%</td></tr>
+<tr><td>Con 15 € di commissioni</td><td>3,403%</td></tr>
+<tr><td>Con imposta di bollo 0,20% annuo</td><td>3,220%</td></tr>
+<tr><td>Se fosse tassato al 26% (come un'obbligazione societaria)</td><td>2,891%</td></tr>
+</tbody>
+</table>
+<p>Con un prezzo vicino a 100, il netto è circa il lordo per 0,875 (cioè meno il 12,5%). Commissioni e bollo lo abbassano ancora, e lontano da 100 la stima a occhio non basta più: conviene fare il conto completo.</p>
+<a class="cta" href="../../?da=guida&amp;isin=IT0005607970&amp;regolamento=2026-10-09&amp;scadenza=2035-02-01&amp;cedola=3.85&amp;frequenza=2&amp;giorni=ACT%2FACT&amp;rimborso=100&amp;modo=price&amp;prezzo=99.8&amp;nominale=10000&amp;commissioni=0&amp;tassa=0.125&amp;bollo=0">Calcola con questi dati</a>
+<p>Nel calcolatore puoi cambiare prezzo, importo, commissioni e bollo, oppure cercare un altro titolo di Stato per ISIN.</p>
+
+</main>
+<nav class="related" aria-label="Altre guide"><h2>Altre guide</h2><ul><li><a href="../rateo-prezzo-tel-quel/">Rateo e prezzo tel quel: cosa paghi davvero</a></li><li><a href="../duration-rischio-tassi/">Duration: quanto perde un BTP se i tassi salgono</a></li></ul></nav>
+<p class="note">Contenuto informativo, non è una consulenza finanziaria né fiscale. Gli esempi sono calcolati con il calcolatore del sito alla data indicata; verifica sempre i dati del titolo e la tua situazione fiscale.</p>
+</div>
+</body>
+</html>

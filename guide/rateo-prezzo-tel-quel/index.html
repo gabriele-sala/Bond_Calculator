@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rateo e prezzo tel quel: cosa paghi davvero | Calcolo Obbligazioni</title>
+<meta name="description" content="Cos&#x27;è il rateo di un&#x27;obbligazione, come si calcola con la convenzione ACT/ACT e perché paghi il prezzo tel quel invece del prezzo secco. Con un esempio su un BTP.">
+<link rel="canonical" href="https://calcoloobbligazioni.it/guide/rateo-prezzo-tel-quel/">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Calcolo Obbligazioni">
+<meta property="og:locale" content="it_IT">
+<meta property="og:url" content="https://calcoloobbligazioni.it/guide/rateo-prezzo-tel-quel/">
+<meta property="og:title" content="Rateo e prezzo tel quel: cosa paghi davvero">
+<meta property="og:description" content="Cos&#x27;è il rateo di un&#x27;obbligazione, come si calcola con la convenzione ACT/ACT e perché paghi il prezzo tel quel invece del prezzo secco. Con un esempio su un BTP.">
+<meta property="og:image" content="https://calcoloobbligazioni.it/img/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#eef2ef">
+<link rel="icon" type="image/png" sizes="32x32" href="../../img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../img/favicon-16.png">
+<link rel="apple-touch-icon" href="../../img/apple-touch-icon.png">
+<script>
+  (function () { try { var s = JSON.parse(localStorage.getItem('bondcalc:aspetto') || '{}');
+    if (s.mode === 'light' || s.mode === 'dark') document.documentElement.setAttribute('data-theme', s.mode); } catch (e) {} })();
+</script>
+<link rel="stylesheet" href="../../css/fonts.css">
+<link rel="stylesheet" href="../../css/guide.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Rateo e prezzo tel quel: cosa paghi davvero", "description": "Cos'è il rateo di un'obbligazione, come si calcola con la convenzione ACT/ACT e perché paghi il prezzo tel quel invece del prezzo secco. Con un esempio su un BTP.", "inLanguage": "it", "url": "https://calcoloobbligazioni.it/guide/rateo-prezzo-tel-quel/", "datePublished": "2026-10-08", "dateModified": "2026-10-08", "author": {"@type": "Organization", "name": "Calcolo Obbligazioni", "url": "https://calcoloobbligazioni.it/"}, "publisher": {"@type": "Organization", "name": "Calcolo Obbligazioni", "url": "https://calcoloobbligazioni.it/"}, "image": "https://calcoloobbligazioni.it/img/og-image.png"}</script>
+<script data-goatcounter="https://sungfive.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<a class="brand" href="../../"><img src="../../img/brand/favicon.svg" alt="" width="34" height="34"><span>Calcolo <em>Obbligazioni</em></span></a>
+<p class="crumbs"><a href="../../">Calcolatore</a> › <a href="../">Guide</a></p>
+<main>
+<h1>Rateo e prezzo tel quel: cosa paghi davvero</h1>
+<p class="lede">Sul MOT un BTP è quotato, per esempio, a 99,80. Ma se ne compri 10.000 € nominali non paghi 9.980 €: paghi di più. La differenza è il rateo, e il totale è il prezzo tel quel.</p>
+
+<h2>Prezzo secco, rateo e tel quel</h2>
+<ul>
+<li><strong>Prezzo secco</strong>: il prezzo quotato, per 100 di nominale, senza interessi maturati.</li>
+<li><strong>Rateo</strong>: la parte della cedola in corso già maturata dall'ultimo pagamento fino alla data di regolamento. Spetta al venditore, che ha tenuto il titolo fino a quel giorno.</li>
+<li><strong>Prezzo tel quel</strong>: secco più rateo. È quello che paghi davvero, ed è su questo che si calcola il rendimento.</li>
+</ul>
+
+<h2>Come si calcola il rateo</h2>
+<p>Per i titoli di Stato si usa la convenzione ACT/ACT (ICMA): giorni effettivi trascorsi dall'ultima cedola, divisi per i giorni effettivi del periodo cedolare.</p>
+<p class="formula">rateo = cedola del periodo × giorni trascorsi ÷ giorni del periodo</p>
+<p>Conta la <strong>data di regolamento</strong>, non quella dell'ordine: oggi, sui mercati italiani, è di norma due giorni lavorativi dopo l'acquisto.</p>
+
+<h2>Esempio: BTP 3,85% 1 febbraio 2035</h2>
+<p>Le cedole sono semestrali, il 1° febbraio e il 1° agosto, da 1,925 per 100. Con regolamento il 9 ottobre 2026:</p>
+<div class="example">
+<h3>Rateo e tel quel per 100 di nominale</h3>
+<dl>
+<dt>Ultima cedola</dt><dd>1 ago 2026</dd>
+<dt>Prossima cedola</dt><dd>1 feb 2027</dd>
+<dt>Giorni trascorsi / giorni del periodo</dt><dd>69 / 184</dd>
+<dt>Rateo: 1,925 × 69 ÷ 184</dt><dd>0,7219</dd>
+<dt>Prezzo secco</dt><dd>99,8000</dd>
+<dt>Prezzo tel quel</dt><dd class="strong">100,5219</dd>
+</dl>
+</div>
+<p>Su 10.000 € nominali: 9.980,00 € di prezzo secco più 72,19 € di rateo, per un totale di <strong>10.052,19 €</strong> (più le eventuali commissioni).</p>
+
+<h2>Il rateo non è un costo perso</h2>
+<p>Il rateo che paghi ti torna con la prima cedola, che incassi per intero anche se hai tenuto il titolo solo per una parte del periodo. Anche le tasse ne tengono conto: sulla prima cedola la ritenuta riguarda solo la parte maturata dopo il tuo acquisto. Nell'esempio la prima cedola netta è 177,46 € invece dei 168,44 € delle successive (vedi <a href="../rendimento-netto-btp/">come si calcola il rendimento netto</a>).</p>
+
+<h2>Altre convenzioni</h2>
+<p>Non tutte le obbligazioni usano ACT/ACT. Molte obbligazioni societarie in dollari usano 30/360 (mesi da 30 giorni), alcuni titoli del mercato monetario ACT/360. Con la convenzione sbagliata il rateo, e quindi il prezzo tel quel, cambia: nel calcolatore puoi scegliere quella indicata nel prospetto del titolo.</p>
+<a class="cta" href="../../?da=guida&amp;isin=IT0005607970&amp;regolamento=2026-10-09&amp;scadenza=2035-02-01&amp;cedola=3.85&amp;frequenza=2&amp;giorni=ACT%2FACT&amp;rimborso=100&amp;modo=price&amp;prezzo=99.8&amp;nominale=10000&amp;commissioni=0&amp;tassa=0.125&amp;bollo=0">Calcola con questi dati</a>
+
+</main>
+<nav class="related" aria-label="Altre guide"><h2>Altre guide</h2><ul><li><a href="../rendimento-netto-btp/">Come si calcola il rendimento netto di un BTP</a></li><li><a href="../duration-rischio-tassi/">Duration: quanto perde un BTP se i tassi salgono</a></li></ul></nav>
+<p class="note">Contenuto informativo, non è una consulenza finanziaria né fiscale. Gli esempi sono calcolati con il calcolatore del sito alla data indicata; verifica sempre i dati del titolo e la tua situazione fiscale.</p>
+</div>
+</body>
+</html>

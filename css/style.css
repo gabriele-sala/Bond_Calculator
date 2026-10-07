@@ -970,6 +970,10 @@ table.coupons tr.redeem td:first-child { font-style: italic; }
 
 /* ---------------------------------------------------------------- metodo */
 
+.guides-nav { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; font-size: var(--step--1); }
+.guides-label { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.guides-nav a { color: var(--accent); }
+@media print { .guides-nav { display: none; } }
 .method .method-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
