@@ -1,6 +1,6 @@
 # Calcolatore Rendimento Obbligazioni
 
-Sito statico (HTML, CSS e JavaScript, nessuna dipendenza) per calcolare con precisione il rendimento di un'obbligazione.
+Sito statico (HTML, CSS e JavaScript, nessuna dipendenza) per calcolare con precisione il rendimento di un'obbligazione: **[calcoloobbligazioni.it](https://calcoloobbligazioni.it)**.
 
 ## Cosa calcola
 
@@ -57,7 +57,9 @@ Nel campo "Prezzo di acquisto / simulazione" va il prezzo secco per 100 di nomin
 
 ## Privacy
 
-Il sito non contatta nessun server esterno: niente analytics, niente cookie, nessuna libreria da CDN. L'ultima analisi, il portafoglio e la scelta del tema restano salvati solo nel browser (`localStorage`). Anche i font (IBM Plex e Instrument Serif, licenza SIL Open Font License, testi in `fonts/`) sono ospitati nel repository, così l'indirizzo IP dei visitatori non viene inviato a Google Fonts. Tutti i calcoli avvengono nel browser.
+Nessun cookie e nessuna libreria da CDN. L'unico servizio esterno sono le statistiche di visita anonime di [GoatCounter](https://www.goatcounter.com), senza cookie: si contano la visita e alcune azioni (titolo caricato da ISIN, PDF, link condiviso), mai i dati dell'analisi, che vengono tolti dall'indirizzo prima del conteggio. Se un blocco pubblicità ferma GoatCounter, il sito funziona lo stesso. L'ultima analisi, il portafoglio e la scelta del tema restano salvati solo nel browser (`localStorage`).
+
+I link condivisi e il PDF usano sempre l'indirizzo pubblico del sito (`siteUrl` in `js/config.js`), anche se la pagina è aperta dall'indirizzo tecnico di GitHub Pages. Nel PDF i margini di pagina sono a zero, così il browser non aggiunge indirizzo e data ai bordi. Anche i font (IBM Plex e Instrument Serif, licenza SIL Open Font License, testi in `fonts/`) sono ospitati nel repository, così l'indirizzo IP dei visitatori non viene inviato a Google Fonts. Tutti i calcoli avvengono nel browser.
 
 ## Precisione
 

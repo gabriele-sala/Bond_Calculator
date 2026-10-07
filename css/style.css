@@ -421,6 +421,8 @@ h3 { margin: 0 0 6px; font-size: var(--step-0); font-weight: 600; }
 
 .results { display: grid; gap: 20px; min-width: 0; }
 #output { display: grid; gap: 20px; min-width: 0; }
+/* Dati non validi: i risultati restano visibili ma attenuati; i pulsanti no. */
+#output.stale > :not(.share-row) { opacity: 0.35; }
 
 /* ---------------------------------------------------------------- modulo */
 
@@ -455,6 +457,12 @@ input[type="text"], input[type="date"], select {
   border-radius: 4px;
   padding: 8px 10px;
   min-height: 40px;
+}
+/* iPhone e iPad: il campo data di Safari ha una larghezza minima propria e
+   usciva dalla colonna. Senza l'aspetto nativo si adatta alla griglia. */
+@supports (-webkit-touch-callout: none) {
+  input[type="date"] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; text-align: left; }
+  input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
 }
 input[type="text"] { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 input:focus-visible, select:focus-visible, summary:focus-visible, .segmented input:focus-visible + label {
@@ -991,11 +999,14 @@ table.coupons tr.redeem td:first-child { font-style: italic; }
 
 .print-summary, .print-footer { display: none; }
 @media print {
-  @page { size: A4; margin: 14mm 12mm; }
+  /* Margini a zero: il browser non stampa indirizzo e data ai bordi. Lo spazio
+     lo dà .page, ripetuto su ogni pagina con box-decoration-break. */
+  @page { size: A4; margin: 0; }
   :root { color-scheme: light; }
   html, body { background: #fff !important; }
   body { font-size: 10.5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .page { max-width: none; padding: 0 !important; }
+  .page { max-width: none; padding: 14mm 12mm !important; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  #output.stale > * { opacity: 1 !important; }
   .appearance, .masthead, #bond-form, .share-row, #error, .dock, #portafoglio, .method,
   .chart .hover-dot, .chart .tip { display: none !important; }
   .layout { display: block; }
