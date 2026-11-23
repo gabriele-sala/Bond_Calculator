@@ -1,17 +1,8 @@
 {
  "fonte": "MEF - Dipartimento del Tesoro, \"Scadenze suddivise per anno\"",
- "url": "https://www.dt.mef.gov.it/export/sites/sitodt/modules/documenti_it/debito_pubblico/scadenze_titoli_suddivise_per_anno/Scadenze-suddivise-per-anno-aggiornamento-al-30-settembre-2026.csv",
- "aggiornato": "2026-09-30",
+ "url": "https://www.dt.mef.gov.it/export/sites/sitodt/modules/documenti_it/debito_pubblico/scadenze_titoli_suddivise_per_anno/Scadenze-suddivise-per-anno-aggiornamento-al-31-ottobre-2026.csv",
+ "aggiornato": "2026-10-31",
  "titoli": [
-  {
-   "isin": "IT0005674335",
-   "descrizione": "BOT 14/10/2026",
-   "tipo": "BOT",
-   "cedola": 0,
-   "frequenza": null,
-   "emissione": "2025-10-14",
-   "scadenza": "2026-10-14"
-  },
   {
    "isin": "IT0001086567",
    "descrizione": "BTP 7,25% 01/11/2026",
@@ -203,9 +194,9 @@
   },
   {
    "isin": "IT0005599904",
-   "descrizione": "BTP 3,2% 15/07/2027",
+   "descrizione": "BTP 3,45% 15/07/2027",
    "tipo": "BTP",
-   "cedola": 3.2,
+   "cedola": 3.45,
    "frequenza": 2,
    "emissione": "2024-06-17",
    "scadenza": "2027-07-15"
@@ -254,6 +245,15 @@
    "frequenza": 2,
    "emissione": "2020-07-16",
    "scadenza": "2027-09-15"
+  },
+  {
+   "isin": "IT0005735094",
+   "descrizione": "BOT 14/10/2027",
+   "tipo": "BOT",
+   "cedola": 0,
+   "frequenza": null,
+   "emissione": "2026-10-14",
+   "scadenza": "2027-10-14"
   },
   {
    "isin": "IT0005622128",
@@ -436,15 +436,6 @@
    "scadenza": "2028-12-01"
   },
   {
-   "isin": "IT0005660052",
-   "descrizione": "BTP 2,35% 15/01/2029",
-   "tipo": "BTP",
-   "cedola": 2.35,
-   "frequenza": 2,
-   "emissione": "2025-07-15",
-   "scadenza": "2029-01-15"
-  },
-  {
    "isin": "IT0005566408",
    "descrizione": "BTP 4,1% 01/02/2029",
    "tipo": "BTP",
@@ -461,15 +452,6 @@
    "frequenza": 2,
    "emissione": "2021-11-15",
    "scadenza": "2029-02-15"
-  },
-  {
-   "isin": "IT0005689960",
-   "descrizione": "BTP 2,4% 15/03/2029",
-   "tipo": "BTP",
-   "cedola": 2.4,
-   "frequenza": 2,
-   "emissione": "2026-01-15",
-   "scadenza": "2029-03-15"
   },
   {
    "isin": "IT0005451361",
@@ -769,6 +751,24 @@
    "scadenza": "2031-10-15"
   },
   {
+   "isin": "IT0005735201",
+   "descrizione": "BTP Valore 27/10/2031",
+   "tipo": "BTP Valore",
+   "cedola": 3.75,
+   "frequenza": null,
+   "emissione": "2026-10-27",
+   "scadenza": "2031-10-27"
+  },
+  {
+   "isin": "IT0005735227",
+   "descrizione": "BTP Valore 27/10/2031",
+   "tipo": "BTP Valore",
+   "cedola": 22.7,
+   "frequenza": null,
+   "emissione": "2026-10-27",
+   "scadenza": "2031-10-27"
+  },
+  {
    "isin": "IT0005542359",
    "descrizione": "BTP Green 4% 30/10/2031",
    "tipo": "BTP Green",
@@ -794,6 +794,15 @@
    "frequenza": 2,
    "emissione": "2021-06-01",
    "scadenza": "2031-12-01"
+  },
+  {
+   "isin": "IT0005733636",
+   "descrizione": "BTP 3,95% 01/02/2032",
+   "tipo": "BTP",
+   "cedola": 3.95,
+   "frequenza": 2,
+   "emissione": "2026-10-01",
+   "scadenza": "2032-02-01"
   },
   {
    "isin": "IT0005094088",
